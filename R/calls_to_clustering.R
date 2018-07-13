@@ -16,9 +16,11 @@ clusterStab_hclust <- function(data, vec_ngroup, ...) {
 #' @importFrom stats kmeans
 #' @export
 clusterStab_kmeans <- function(data, vec_ngroup, ...) {
-
-  # kmeans()
-
+  options <- list(...)
+  cl_out <- sapply(vec_ngroup, function(k) kmeans(data, k, iter.max = options$iterations,
+                                                  nstart = options$initialisations,
+                                                  algorithm = options$algorithm)$cluster)
+  cl_out
 }
 
 #' call to mclust formatted for the clusterStability package
@@ -26,7 +28,13 @@ clusterStab_kmeans <- function(data, vec_ngroup, ...) {
 #' @import mclust
 #' @export
 clusterStab_gmm <- function(data, vec_ngroup, ...) {
+  options <- list(...)
 
   # mclust()
-
+  cl_out <- sapply(vec_ngroup, function(k) Mclust(data, G = k, modelNames = options$gmmModel)$classification)
+  cl_out
 }
+
+
+
+
