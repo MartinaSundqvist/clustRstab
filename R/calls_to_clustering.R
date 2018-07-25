@@ -15,13 +15,21 @@ clusterStab_hclust <- function(data, vec_ngroup, ...) {
 #'
 #' @importFrom stats kmeans
 #' @export
+# clusterStab_kmeans <- function(data, vec_ngroup, ...) {
+#   options <- list(...)
+#   cl_out <- sapply(vec_ngroup, function(k) kmeans(data, k, iter.max = options$iterations,
+#                                                   nstart = options$initialisations,
+#                                                   algorithm = options$algorithm)$cluster)
+#   cl_out
+# }
+
+
 clusterStab_kmeans <- function(data, vec_ngroup, ...) {
   options <- list(...)
-  cl_out <- sapply(vec_ngroup, function(k) kmeans(data, k, iter.max = options$iterations,
-                                                  nstart = options$initialisations,
-                                                  algorithm = options$algorithm)$cluster)
+  cl_out <- sapply(vec_ngroup, function(k) kmeans(data, k)$cluster)
   cl_out
 }
+
 
 #' call to mclust formatted for the clusterStability package
 #'
