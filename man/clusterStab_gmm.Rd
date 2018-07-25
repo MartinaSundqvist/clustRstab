@@ -4,7 +4,7 @@
 \alias{clusterStab_gmm}
 \title{call to mclust formatted for the clusterStability package}
 \usage{
-clusterStab_gmm(data, vec_ngroup, ...)
+clusterStab_gmm(data, vec_ngroup, options_clustering)
 }
 \description{
 call to mclust formatted for the clusterStability package

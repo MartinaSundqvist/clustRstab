@@ -4,7 +4,7 @@
 \alias{clusterStab_hclust}
 \title{call to hclust formatted for the clusterStability package}
 \usage{
-clusterStab_hclust(data, vec_ngroup, ...)
+clusterStab_hclust(data, vec_ngroup, options_clustering)
 }
 \description{
 call to hclust formatted for the clusterStability package

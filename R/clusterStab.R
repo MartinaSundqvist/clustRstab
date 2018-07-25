@@ -11,9 +11,10 @@
 #' @import aricode mclust parallel
 #' @export
 #'
-source("R/get_perturbed_data.R")
-source("R/calls_to_clustering.R")
-clust.stab.index <- function(data, nb.grs = 1:10, data.generator, data.genenerator.param, clustering.method, nsim =100, mc.cores = 3, score = "NID", ...){
+clust.stab.index <- function(data, nb.grs = 1:10, data.generator, data.genenerator.param, clustering.method, nsim =100, mc.cores = 3, score = "NID",
+                             options_clustering   = list(),
+                             options_perturbation = list()) {
+
   if (score == "NID") f.score = NID
   if (score == "ARI") f.score = ARI
 
@@ -28,6 +29,7 @@ clust.stab.index <- function(data, nb.grs = 1:10, data.generator, data.genenerat
   Classifs <- mclapply(Perturbed_data,
                        clustering.method,
                        vec_ngroup = nb.grs,
+                       options_clustering = options_clustering,
                        mc.cores=mc.cores)
 
 

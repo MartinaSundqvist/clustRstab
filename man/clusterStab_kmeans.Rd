@@ -4,7 +4,7 @@
 \alias{clusterStab_kmeans}
 \title{call to kmeans formatted for the clusterStability package}
 \usage{
-clusterStab_kmeans(data, vec_ngroup, ...)
+clusterStab_kmeans(data, vec_ngroup, options_clustering)
 }
 \description{
 call to kmeans formatted for the clusterStability package
