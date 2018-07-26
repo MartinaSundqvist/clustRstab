@@ -1,3 +1,3 @@
 # clusterStability
 
-This project implements various clustering stabnility procedures.
+This project implements various clustering stability procedures.
