@@ -8,7 +8,7 @@ clusterStab_hclust <- function(data, vec_ngroup, options_clustering) {
   options <- options_default_hclust
   options[names(options_clustering)] <- options_clustering
 
-  hc_out <- hclust(dist(data, method = options$distance), method = options$aggregation)
+  hc_out <- hclust(dist(data, method = options$distance), method = options$method)
   cl_out <- cutree(hc_out, vec_ngroup)
   cl_out
 }
@@ -29,14 +29,6 @@ clusterStab_kmeans <- function(data, vec_ngroup, options_clustering) {
   cl_out
 }
 
-#
-# clusterStab_kmeans <- function(data, vec_ngroup, ...) {
-#   options <- list(...)
-#   cl_out <- sapply(vec_ngroup, function(k) kmeans(data, k)$cluster)
-#   cl_out
-# }
-
-
 #' call to mclust formatted for the clusterStability package
 #'
 #' @import mclust
@@ -47,7 +39,7 @@ clusterStab_gmm <- function(data, vec_ngroup, options_clustering) {
   options[names(options_clustering)] <- options_clustering
 
   # mclust()
-  cl_out <- sapply(vec_ngroup, function(k) Mclust(data, G = k, modelNames = options$gmmModel)$classification)
+  cl_out <- sapply(vec_ngroup, function(k) Mclust(data, G = k, modelNames = options$modelNames)$classification)
   cl_out
 }
 

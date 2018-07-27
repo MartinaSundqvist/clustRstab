@@ -37,7 +37,7 @@ clust.stab.index <- function(data, nb.grs = 1:10, data.generator, data.genenerat
 
   #   4.a Define all the possible pairs of comparaison
   pairs <- combn(x = nsim, m = 2, simplify=FALSE) # pair des jeux de données, pour m = 2 : (1,2), (1,3), (1,4),...,(n-1, n), returned in a list
-  nb.pairs <-  length(pairs) # x*(x-1)/m
+
 
   #   4.b Compute pairwise comparisons
   score.pairs <- do.call(rbind, mclapply(pairs, function(pair) {
@@ -45,7 +45,7 @@ clust.stab.index <- function(data, nb.grs = 1:10, data.generator, data.genenerat
       classif2 <- Classifs[[pair[2]]]
     if (length(nb.grs) == 1) {classif1 <- matrix(classif1); classif2 <- matrix(classif2)}
     return(sapply(1:length(nb.grs), function(i) f.score(classif1[,i], classif2[,i]))) #compute NID score
-  }, mc.cores=mc.cores)) # use a nb of mc.cores
+  }, mc.cores=mc.cores))
 
   score.pairs[is.nan(score.pairs)] <- 0 # Since group 1 rende des NaNs
 

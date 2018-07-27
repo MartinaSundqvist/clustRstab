@@ -5,8 +5,11 @@ options_default_kmeans <- list(
 )
 
 options_default_gmm <- list(
+  modelNames = NULL
 )
 
 options_default_hclust <- list(
+  distance = "euclidean",
+  method = "ward.D2"
 )
 
