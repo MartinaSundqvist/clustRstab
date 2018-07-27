@@ -4,9 +4,10 @@
 \alias{clust.stab.index}
 \title{Perform clustering stability}
 \usage{
-clust.stab.index(data, nb.grs = 1:10, data.generator, data.genenerator.param,
-  clustering.method, nsim = 100, mc.cores = 3, score = "NID",
-  options_clustering = list(), options_perturbation = list())
+clust.stab.index(data, nb.grs = 1:10, data.generator, clustering.method,
+  clust.comp.score = NID, normalization = NID.normalizaton, nsim = 50,
+  mc.cores = 3, options_clustering = list(),
+  options_perturbation = list())
 }
 \arguments{
 \item{data}{a data frame}

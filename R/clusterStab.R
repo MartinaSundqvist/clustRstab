@@ -11,93 +11,50 @@
 #' @import aricode mclust parallel
 #' @export
 #'
-clust.stab.index <- function(data, nb.grs = 1:10, data.generator, data.genenerator.param, clustering.method, nsim =100, mc.cores = 3, score = "NID",
+clust.stab.index <- function(data, nb.grs = 1:10, data.generator, clustering.method,
+                             clust.comp.score = NID, normalization = NID.normalizaton,
+                             nsim =50,
+                             mc.cores = 3,
                              options_clustering   = list(),
                              options_perturbation = list()) {
 
-  if (score == "NID") f.score = NID
-  if (score == "ARI") f.score = ARI
+  # 1. Generate perturbed datasets
+  Perturbed_data <- mclapply(1:nsim, data.generator, data = data, options_perturbation = options_perturbation, mc.cores=mc.cores)
 
+  # 2. Compute clusterings for each perturbed dataset for K = vec_ngroup
+  Classifs <- mclapply(Perturbed_data, clustering.method, vec_ngroup = nb.grs, options_clustering = options_clustering, mc.cores=mc.cores)
 
-  # 1. Import data
-  X <- data
+  # 3. Compute pairwise comparaisons
+  score.pairs <- get.score(clust.comp.score = clust.comp.score, Classifs = Classifs, nsim = nsim,  mc.cores = mc.cores)
 
-  # 2. Generate perturbed datasets
-  Perturbed_data <- mclapply(1:nsim, data.generator, data = X, param = data.genenerator.param, mc.cores=mc.cores)
+  # 4. Permute labels and compare clusters in order to have a measure of randomly shared information
+  score.pairs.boot <- get.score.boot(clust.comp.score = clust.comp.score, Classifs = Classifs, nsim = nsim, mc.cores = mc.cores)
 
-  # 3. Compute clusterings for each perturbed dataset for K = vec_ngroup
-  Classifs <- mclapply(Perturbed_data,
-                       clustering.method,
-                       vec_ngroup = nb.grs,
-                       options_clustering = options_clustering,
-                       mc.cores=mc.cores)
+  # 5. Normalize cluster comparaisons by the permuted comparaisons
+    # 5.1 Instab index and sd
+      mean <- colMeans(score.pairs)
+      sd <- apply(score.pairs, 2, sd)
 
+    # 5.2 Normalized Instab index and sd
+      mean.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
+      sd.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
 
-  # 4. Compute pairwise comparaisons
-
-  #   4.a Define all the possible pairs of comparaison
-  pairs <- combn(x = nsim, m = 2, simplify=FALSE) # pair des jeux de données, pour m = 2 : (1,2), (1,3), (1,4),...,(n-1, n), returned in a list
-
-
-  #   4.b Compute pairwise comparisons
-  score.pairs <- do.call(rbind, mclapply(pairs, function(pair) {
-      classif1 <- Classifs[[pair[1]]]
-      classif2 <- Classifs[[pair[2]]]
-    if (length(nb.grs) == 1) {classif1 <- matrix(classif1); classif2 <- matrix(classif2)}
-    return(sapply(1:length(nb.grs), function(i) f.score(classif1[,i], classif2[,i]))) #compute NID score
-  }, mc.cores=mc.cores))
-
-  score.pairs[is.nan(score.pairs)] <- 0 # Since group 1 rende des NaNs
-
-  # 5. Permute labels and compare clusters in order to have a measure of randomly shared information
-
-  score.pairs.boot <- do.call(rbind, mclapply(pairs, function(pair) {
-      classif1 <- Classifs[[pair[1]]]
-      classif2 <- Classifs[[pair[2]]]
-    if (length(nb.grs) == 1) {classif1 <- matrix(classif1); classif2 <- matrix(classif2)}
-    return(sapply(1:length(nb.grs), function(i) mean(
-      replicate(10, f.score(sample(classif1[,i]), classif2[,i])))
-    ))
-  }, mc.cores=mc.cores))
-  score.pairs.boot[is.nan(score.pairs.boot)] <- 0
-
-  # 6. Normalize cluster comparaisons by the permuted comparaisons
-
-  # Instab index and sd
-  mean <- colMeans(score.pairs)
-  sd <- apply(score.pairs, 2, sd)
-
-  # Normalized Instab index and sd
-  if (score == "NID"){ mean.normalized <- colMeans(score.pairs - score.pairs.boot) + 1}
-  else if (score == "ARI"){ mean.normalized <- colMeans(score.pairs - score.pairs.boot)}
-  sd.normalized <- apply(t(score.pairs) - colMeans(score.pairs.boot), 1, sd)
-
-  # mean.normalized <- colMeans(score.pairs - score.pairs.boot) + 1
-
-  # 7. Return all needed info
+  # 6. Return all needed info
   return(list(instab = mean,
               instab.sd = sd,
               instab.norm = mean.normalized,
               instab.norm.sd = sd.normalized,
               nsim = nsim,
-              data.genenerator.param = data.genenerator.param,
-              method = clustering.method,
-              #instab.plot = instab.plot,
               nb.grs = nb.grs))
 
 }
 
 
-
-# TEST
-# dat <- iris[,1:4]
-# clust.stab.index(dat, data.generator = subVar_data, nsim = 10, data.genenerator.param =0.5, clustering.method = clusterStab_kmeans, score = "NID")
-
-
-
-
-
-
+# To do:
+# continuer a evoluer generation de donnée etc.
+# get score = set NaN to 0 should maybe be done within the function of normalization
+# Choose the Gmm model by computing gmm with the whole data set and take the model with highst BIC as default value
+# start to implement other cluster comp measures
 
 
 

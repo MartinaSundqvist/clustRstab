@@ -4,7 +4,7 @@
 \alias{subVar_data}
 \title{Generate perturbed data sets by subsampling varibles}
 \usage{
-subVar_data(i, data, param)
+subVar_data(i, data, options_perturbation = list())
 }
 \description{
 Generate perturbed data sets by subsampling varibles

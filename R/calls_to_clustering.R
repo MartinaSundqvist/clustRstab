@@ -18,7 +18,7 @@ clusterStab_hclust <- function(data, vec_ngroup, options_clustering) {
 #' @importFrom stats kmeans
 #' @export
 
-clusterStab_kmeans <- function(data, vec_ngroup, options_clustering) {
+clusterStab_kmeans <- function(data, vec_ngroup, options_clustering = list()) {
 
   options <- options_default_kmeans
   options[names(options_clustering)] <- options_clustering

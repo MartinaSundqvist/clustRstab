@@ -13,3 +13,6 @@ options_default_hclust <- list(
   method = "ward.D2"
 )
 
+options_default_subVar <- list(
+  param = 0.8
+)
