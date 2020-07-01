@@ -10,13 +10,13 @@
 #'
 #' @import aricode mclust parallel
 #' @export
-#'
-clust.stab.index <- function(data, nb.grs = 1:10, data.generator, clustering.method,
-                             clust.comp.score = NID, normalization = NID.normalizaton,
-                             nsim =50,
-                             mc.cores = 3,
-                             options_clustering   = list(),
-                             options_perturbation = list()) {
+
+clustRstab <- function(data, nb.grs = 1:10, data.generator, clustering.method,
+                       clust.comp.score = NID, normalization = NID.normalizaton,
+                       nsim =50,
+                       mc.cores = 3,
+                       options_clustering   = list(),
+                       options_perturbation = list()) {
 
   # 1. Generate perturbed datasets
   Perturbed_data <- mclapply(1:nsim, data.generator, data = data, options_perturbation = options_perturbation, mc.cores=mc.cores)
@@ -31,13 +31,13 @@ clust.stab.index <- function(data, nb.grs = 1:10, data.generator, clustering.met
   score.pairs.boot <- get.score.boot(clust.comp.score = clust.comp.score, Classifs = Classifs, nsim = nsim, mc.cores = mc.cores)
 
   # 5. Normalize cluster comparaisons by the permuted comparaisons
-    # 5.1 Instab index and sd
-      mean <- colMeans(score.pairs)
-      sd <- apply(score.pairs, 2, sd)
+  # 5.1 Instab index and sd
+  mean <- colMeans(score.pairs)
+  sd <- apply(score.pairs, 2, sd)
 
-    # 5.2 Normalized Instab index and sd
-      mean.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
-      sd.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
+  # 5.2 Normalized Instab index and sd
+  mean.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
+  sd.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
 
   # 6. Return all needed info
   return(list(instab = mean,
@@ -48,6 +48,45 @@ clust.stab.index <- function(data, nb.grs = 1:10, data.generator, clustering.met
               nb.grs = nb.grs))
 
 }
+
+
+# clustRstab <- function(data, nb.grs = 1:10, data.generator, clustering.method,
+#                              clust.comp.score = NID, normalization = NID.normalizaton,
+#                              nsim =50,
+#                              mc.cores = 3,
+#                              options_clustering   = list(),
+#                              options_perturbation = list()) {
+#
+#   # 1. Generate perturbed datasets
+#   Perturbed_data <- mclapply(1:nsim, data.generator, data = data, options_perturbation = options_perturbation, mc.cores=mc.cores)
+#
+#   # 2. Compute clusterings for each perturbed dataset for K = vec_ngroup
+#   Classifs <- mclapply(Perturbed_data, clustering.method, vec_ngroup = nb.grs, options_clustering = options_clustering, mc.cores=mc.cores)
+#
+#   # 3. Compute pairwise comparaisons
+#   score.pairs <- get.score(clust.comp.score = clust.comp.score, Classifs = Classifs, nsim = nsim,  mc.cores = mc.cores)
+#
+#   # 4. Permute labels and compare clusters in order to have a measure of randomly shared information
+#   score.pairs.boot <- get.score.boot(clust.comp.score = clust.comp.score, Classifs = Classifs, nsim = nsim, mc.cores = mc.cores)
+#
+#   # 5. Normalize cluster comparaisons by the permuted comparaisons
+#     # 5.1 Instab index and sd
+#       mean <- colMeans(score.pairs)
+#       sd <- apply(score.pairs, 2, sd)
+#
+#     # 5.2 Normalized Instab index and sd
+#       mean.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
+#       sd.normalized <- normalization(score.pairs, score.pairs.boot)[[1]]
+#
+#   # 6. Return all needed info
+#   return(list(instab = mean,
+#               instab.sd = sd,
+#               instab.norm = mean.normalized,
+#               instab.norm.sd = sd.normalized,
+#               nsim = nsim,
+#               nb.grs = nb.grs))
+#
+# }
 
 
 # To do:
