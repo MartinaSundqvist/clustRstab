@@ -3,7 +3,7 @@
 #  - gives as output a n x 1 classirifaction in $k$ classes (A named $n$ vector with cluster belongings)
 
 
-
+#' @export
 clAlgoHclust <- function(data, k, ...){
   d <- dist(x = data)
   clTree <- hclust(d = d, ...)
@@ -11,6 +11,7 @@ clAlgoHclust <- function(data, k, ...){
   cl
 }
 
+#' @export
 clAlgoKmeans <- function(data, k, ...){
   cl <- kmeans(x = data, centers = k)$cluster
   cl

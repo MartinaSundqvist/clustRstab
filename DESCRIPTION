@@ -1,14 +1,22 @@
-Package: clusterStability
+Package: clustRstab
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Authors@R: c(
+    person("Julien", "Chiquet", role = "aut", email = "julien.chiquet@inrae.fr",
+      comment = c(ORCID = "0000-0002-3629-3429")),
+    person("Guillem", "Rigaill", role = "aut", email = "guillem.rigaill@inrae.fr"),
+    person("Martina", "Sundqvist", role = c("aut", "cre"), email = "martina.sundqvist@agroparistech.fr")
+  )
+Maintainer: Martina Sundqvist <martina.sundqvist@agroparistech.fr>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
 Encoding: UTF-8
 Imports: 
-  aricode, mclust, parallel, ggplot2
+  aricode, 
+  mclust, 
+  parallel, 
+  ggplot2
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.0

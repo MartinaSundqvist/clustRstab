@@ -1,4 +1,6 @@
 
+#'
+#' @export
 subSample <- function(data, param = c(nProp, pProp)){
   # param = dimension
   n <- nrow(data)
@@ -9,8 +11,6 @@ subSample <- function(data, param = c(nProp, pProp)){
   perturbedData
 }
 
-
-
 randProj <- function(data, param){
   mat <- RPGenerate(p = ncol(data), d = param, method = "Haar", B2 = 1)
   perturbedData <- crossprod(mat, as.matrix(data))
@@ -19,6 +19,7 @@ randProj <- function(data, param){
   as.data.frame(perturbedData)
 }
 
+#' @export
 noiseGaussian <- function(data, param = c(0, 1)) {
   n <- nrow(data)
   p <- ncol(data)
@@ -29,3 +30,4 @@ noiseGaussian <- function(data, param = c(0, 1)) {
   rownames(perturbedData) <- rownames(data)
   perturbedData
 }
+
