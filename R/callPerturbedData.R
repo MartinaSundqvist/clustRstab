@@ -5,11 +5,18 @@ subSample <- function(data, param = c(nProp, pProp)){
   p <- ncol(data)
   nIndex <- sort(sample(n, param[1]*n))
   pIndex <- sort(sample(p, param[2]*p))
-  data[nIndex, pIndex]
+  perturbedData <- data[nIndex, pIndex]
+  perturbedData
 }
 
-randProj <- function(i, data, param){
-  # param = dimension
+
+
+randProj <- function(data, param){
+  mat <- RPGenerate(p = ncol(data), d = param, method = "Haar", B2 = 1)
+  perturbedData <- crossprod(mat, as.matrix(data))
+  #perturbedData <- crossprod(mat, matrix(as.double(as.matrix(data)), nrow = nrow(data), ncol = ncol(data), byrow =T))
+  #perturbedData <- t(mat) %*% as.double(as.matrix(data))
+  as.data.frame(perturbedData)
 }
 
 noiseGaussian <- function(data, param = c(0, 1)) {
