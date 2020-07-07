@@ -7,11 +7,11 @@
 clustRstab(
   data,
   kVec,
-  perturbedDataFun,
-  clAlgo,
+  perturbedDataFun = clustRstab::subsample,
+  clAlgo = clustRstab::clAlgoKmeans,
   clCompScore = aricode::MARI,
-  param,
-  nsim
+  nsim = 100,
+  param
 )
 }
 \arguments{
@@ -25,9 +25,9 @@ clustRstab(
 
 \item{clCompScore}{dqsdsq}
 
-\item{param}{a list, dqsdqs}
-
 \item{nsim}{a scalar, the number of simulation performed to estimate the clustergin stability}
+
+\item{param}{a list, dqsdqs}
 }
 \description{
 clustRstab() computes cluster stability as the arithmetic mean of the cluster comparision

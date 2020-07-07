@@ -2,18 +2,17 @@
 #  - takes as imput a n x p dataset
 #  - gives as output a n x 1 classirifaction in $k$ classes (A named $n$ vector with cluster belongings)
 
-
 #' @export
-clAlgoHclust <- function(data, k, ...){
+clAlgoHCWard <- function(data, k){
   d <- dist(x = data)
-  clTree <- hclust(d = d, ...)
+  clTree <- hclust(d = d, method = "ward.D2")
   cl <- cutree(tree = clTree, k = k)
   cl
 }
 
 #' @export
-clAlgoKmeans <- function(data, k, ...){
-  cl <- kmeans(x = data, centers = k)$cluster
+clAlgoKmeans <- function(data, k){
+  cl <- kmeans(x = data, centers = k, nstart = 10)$cluster
   cl
 }
 

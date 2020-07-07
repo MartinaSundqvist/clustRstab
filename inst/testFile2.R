@@ -13,21 +13,28 @@ library(aricode)
 #-------------------------------------------------------------------------
 
 # 7a. Simulation Parameters For Intitial Data
-trueK <- 2
+trueK <- 4
 nPerGr <- 10
-grMeans <- c(2,6)
+grMeans <- c(2, 6, 10, 20)
 sim.sd <- 1
 grSD <- rep(sim.sd, trueK)
 vars <- 100
 
+clAlgoHCComplete <- function(data, k){
+  d <- dist(x = data)
+  clTree <- hclust(d = d, method = "complete")
+  cl <- cutree(tree = clTree, k = k)
+  cl
+}
+
 # 7.b Cluster Stability Parammeters
-Kmax1 <- 5
+Kmax1 <- 20
 kVec1 <- 2:Kmax1
 nsim1 = 100
 nProp1 <- 0.7
 pProp1 <- 0.5
-clAlgo1 <- clAlgoKmeans
-clCompScore1 = MARI
+clAlgo1 <- clAlgoHCWard
+clCompScore1 = aricode::MARI
 perturbedDataFun1 = noiseGaussian
 
 getMultiNormalData <- function(nb.grs, obsPerGr, vec.mu, vec.sd,

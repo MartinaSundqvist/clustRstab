@@ -13,11 +13,24 @@
 #'
 #' @import aricode
 #' @export
-clustRstab <-  function(data, kVec, perturbedDataFun, clAlgo, clCompScore = aricode::MARI, param, nsim){
+clustRstab <-  function(
+  data,
+  kVec,
+  perturbedDataFun = clustRstab::subsample,
+  clAlgo = clustRstab::clAlgoKmeans,
+  clCompScore = aricode::MARI,
+  nsim = 100,
+  param
+  ){
+
   perturbedDataList <- lapply(1:nsim, function(i) getPerturbedData(data, perturbedDataFun, param, i))
-  clsList <- getCl(perturbedDataList, data = data, kVec = kVec, clAlgo = clAlgo)
-  clsByK <- getClsByK(clsList = clsList, kVec = kVec)
+
+  clsList  <- getCl(perturbedDataList, data = data, kVec = kVec, clAlgo = clAlgo)
+
+  clsByK   <- getClsByK(clsList = clsList, kVec = kVec)
+
   MARIStab <- getScore(clsByKList = clsByK, clCompScore = clCompScore, kVec = kVec, nsim = nsim)[1,]
+
   plot(y = MARIStab, x = kVec, type = "l", ylim = c(0,1))
 }
 
