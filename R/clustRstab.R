@@ -13,27 +13,77 @@
 #'
 #' @import aricode
 #' @import mclust
+#' @import RPEnsemble
 #'
 #'
 #' @export
 clustRstab <-  function(
   data,
   kVec,
+  typeOfComp = "all",
   perturbedDataFun = clustRstab::subsample,
   clAlgo = clustRstab::clAlgoKmeans,
   clCompScore = aricode::MARI,
   nsim = 100,
-  param
+  baseLineCorrection = FALSE,
+  nProp = 0.7,
+  pProp = 0.9,
+  noiseGaussianMean = 0,
+  noiseGaussianSD = 1,
+  randProjMethod = "Haar",
+  randProjDim = 10
   ){
 
-  perturbedDataList <- getNsimPerturbedDataSets(data = data, perturbedDataFun = perturbedDataFun, param, nsim = nsim)
+  perturbedDataList <- getNsimPerturbedDataSets(data = data,
+                                                perturbedDataFun = perturbedDataFun,
+                                                nProp = nProp,
+                                                pProp = pProp,
+                                                noiseGaussianMean = noiseGaussianMean,
+                                                noiseGaussianSD = noiseGaussianSD,
+                                                randProjMethod = randProjMethod,
+                                                randProjDim = randProjDim,
+                                                nsim = nsim)
 
-  clsList  <- getCl(perturbedDataList, data = data, kVec = kVec, clAlgo = clAlgo)
+  clsList  <- getCl(perturbedDataList = perturbedDataList,
+                    data = data,
+                    kVec = kVec,
+                    clAlgo = clAlgo)
 
-  clsByK   <- getClsByK(clsList = clsList, kVec = kVec)
 
-  MARIStab <- getScore(clsByKList = clsByK, clCompScore = clCompScore, kVec = kVec, nsim = nsim)[1,]
+  clsByK   <- getClsByK(clsList = clsList,
+                        kVec = kVec)
 
-  plot(y = MARIStab, x = kVec, type = "l", ylim = c(0,1))
+  if (baseLineCorrection == FALSE){
+    clustRstab <- getScore(typeOfComp = typeOfComp,
+                       clCompScore = clCompScore,
+                       clsByKList = clsByK,
+                       kVec = kVec,
+                       nsim = nsim,
+                       data = data,
+                       clAlgo = clAlgo)
+  }
+
+  if (baseLineCorrection == TRUE){
+    clustRstabInit <- getScore(typeOfComp = typeOfComp,
+                           clCompScore = clCompScore,
+                           clsByKList = clsByK,
+                           kVec = kVec,
+                           nsim = nsim,
+                           data = data,
+                           clAlgo = clAlgo)
+
+    clustRstabBaseLine <- getBaseLineScore(typeOfComp = typeOfComp,
+                                     clCompScore = clCompScore,
+                                     clsByKList = clsByK,
+                                     kVec = kVec,
+                                     nsim = nsim,
+                                     data = data,
+                                     clAlgo = clAlgo)
+
+    clustRstab <- as.data.frame(data.matrix(clustRstabInit) - data.matrix(clustRstabBaseLine) + 1)
+    colnames(clustRstab) <- colnames(clustRstabInit)
+    rownames(clustRstab) <- rownames(clustRstabInit)
+  }
+  plot(y = clustRstab[1,], x = kVec, type = "l", ylim = c(0,1))
+  clustRstab
 }
-

@@ -21,16 +21,17 @@ grSD <- rep(sim.sd, trueK)
 vars <- 100
 
 
-
 # 7.b Cluster Stability Parammeters
 Kmax1 <- 8
 kVec1 <- 2:Kmax1
-nsim1 <- 20
+nsim1 <- 100
 nProp1 <- 0.7
-pProp1 <- 0.5
-clAlgo1 <- clAlgoGmmEEI
-clCompScore1 = aricode::MARI
-perturbedDataFun1 = noiseGaussian
+pProp1 <- 0.7
+clAlgo1 <- clAlgoHCWard
+clCompScore1 = aricode::NID
+perturbedDataFun1 = randProjData
+typeOfComp1 <- "toInitial"
+baseLineCorrection1 = TRUE
 
 getMultiNormalData <- function(nb.grs, obsPerGr, vec.mu, vec.sd,
                                n.col.signal, n.col.noise = 0){
@@ -53,14 +54,18 @@ dat <- getMultiNormalData(nb.grs = trueK,
                            vec.sd = grSD,
                            n.col.signal = vars)
 
+
 # 7.d Compute Cluster Stability
 start_time <- Sys.time()
-clustRstab(data= dat, perturbedDataFun = perturbedDataFun1,
+
+clustRstab(data= dat,
+           perturbedDataFun = perturbedDataFun1,
             kVec = kVec1,
+            typeOfComp = typeOfComp1,
             clCompScore = clCompScore1,
             clAlgo = clAlgo1,
-            param = c(0,1),
-            nsim = nsim1)
+            nsim = nsim1, baseLineCorrection = baseLineCorrection1)
+
 
 end_time <- Sys.time()
 print(end_time - start_time)

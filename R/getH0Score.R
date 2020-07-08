@@ -1,10 +1,12 @@
 # ------------------------------------------------------------------------
-# 5. A function to compute cluster comparaisons between all clusterings (by K)
+# 5. A function to compute baseline for cluster comparaisons
 #-------------------------------------------------------------------------
+# One of the compare clusterings is permuted, allow to get a "baseline" of cluster similarity for each K
+
 
 # getScore() computes cluster comparaisons between all clusterings (by K) using MARI
 
-getScore <- function(typeOfComp,
+getBaseLineScore <- function(typeOfComp,
                      clCompScore,
                      clsByKList,
                      kVec,
@@ -24,23 +26,23 @@ getScore <- function(typeOfComp,
       clInitial <- clAlgo(data, max(k, na.rm = T))
       score <- sapply(1:nsim, function(c) {
         intSec <- which(!is.na(k[,c]))
-        clCompScore(clInitial[intSec], k[intSec, c])
+        mean(replicate(10, clCompScore(clInitial[intSec], sample(k[intSec, c]))))
       } )
       c(mean(score), sd(score), min(score), max(score))
     }))
   }
 
 
- if (iMeth == 2){
-  listOfComp <- combn(nsim,2)
-  scoresRes <-do.call(cbind, lapply(clsByKList, function(k){
-    score <- apply(listOfComp, MARGIN = 2, function(c) {
-      intSec <- intersect(which(!is.na(k[,c[1]])), which(!is.na(k[,c[2]])))
-      clCompScore(k[intSec,c[1]], k[intSec,c[2]])
-    } )
-    c(mean(score), sd(score), min(score), max(score))
-  }))
- }
+  if (iMeth == 2){
+    listOfComp <- combn(nsim,2)
+    scoresRes <-do.call(cbind, lapply(clsByKList, function(k){
+      score <- apply(listOfComp, MARGIN = 2, function(c) {
+        intSec <- intersect(which(!is.na(k[,c[1]])), which(!is.na(k[,c[2]])))
+        mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]]))))
+      } )
+      c(mean(score), sd(score), min(score), max(score))
+    }))
+  }
 
 
   if (iMeth == 3){
@@ -48,13 +50,13 @@ getScore <- function(typeOfComp,
     scoresRes <-do.call(cbind, lapply(clsByKList, function(k){
       score <- apply(listOfComp, MARGIN = 2, function(c) {
         intSec <- intersect(which(!is.na(k[,c[1]])), which(!is.na(k[,c[2]])))
-        clCompScore(k[intSec,c[1]], k[intSec,c[2]])
+        mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]]))))
       } )
       c(mean(score), sd(score), min(score), max(score))
     }))
   }
 
-  rownames(scoresRes) <- c("mean", "sd", "min", "max")
+  rownames(scoresRes) <- c("meanH0", "sdH0", "minH0", "maxH0")
   colnames(scoresRes) <- kVec
   scoresRes
 }
