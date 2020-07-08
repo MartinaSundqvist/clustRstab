@@ -12,6 +12,9 @@
 #' @param nsim a scalar, the number of simulation performed to estimate the clustergin stability
 #'
 #' @import aricode
+#' @import mclust
+#'
+#'
 #' @export
 clustRstab <-  function(
   data,
@@ -23,7 +26,7 @@ clustRstab <-  function(
   param
   ){
 
-  perturbedDataList <- lapply(1:nsim, function(i) getPerturbedData(data, perturbedDataFun, param, i))
+  perturbedDataList <- getNsimPerturbedDataSets(data = data, perturbedDataFun = perturbedDataFun, param, nsim = nsim)
 
   clsList  <- getCl(perturbedDataList, data = data, kVec = kVec, clAlgo = clAlgo)
 

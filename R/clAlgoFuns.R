@@ -11,17 +11,31 @@ clAlgoHCWard <- function(data, k){
 }
 
 #' @export
+clAlgoHCComplete <- function(data, k){
+  d <- dist(x = data)
+  clTree <- hclust(d = d, method = "complete")
+  cl <- cutree(tree = clTree, k = k)
+  cl
+}
+
+#' @export
 clAlgoKmeans <- function(data, k){
   cl <- kmeans(x = data, centers = k, nstart = 10)$cluster
   cl
 }
 
-# clAlgoMclust <- function(data, k, ...){
-#   # optModelName <- Mclust(data)$modelName
-#   # cl <- Mclust(data, G = k, modelNames = optModelName, ...)$classification
-#   cl <- Mclust(data, G = k, modelNames = "EEI", ...)$classification
-#   cl
-# }
+#' @export
+clAlgoGmmEEI <- function(data, k){
+ cl <- suppressMessages(Mclust(data, G = k, modelNames = "EEI")$classification)
+ cl
+}
+
+#' @export
+clAlgoGmmEII <- function(data, k){
+  cl <- suppressMessages(Mclust(data, G = k, modelNames = "EII")$classification)
+  cl
+}
+
 # La convergence de Mclust semble dependre le jeux de donnée sousjacent et ne converge pas à chaque fois
 # Portant il faut fixer le model name une fois pour tous, car sinon incomparable !
 

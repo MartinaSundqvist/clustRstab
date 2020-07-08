@@ -5,7 +5,8 @@
 
 # getPerturbedData() generates perturbed datasets by subsampling varaibles and/or observations
 # - The observations / variables indexes are sorted in increasing order
-getPerturbedData <- function(data, perturbedDataFun, param, i, ...){
-  perturbedData <- perturbedDataFun(data, param, ...)
-  perturbedData
+getNsimPerturbedDataSets <- function(data, perturbedDataFun, param, nsim){
+  perturbedDataList <- lapply(1:nsim, function(i) perturbedDataFun(data, param))
+  perturbedDataList
 }
+
