@@ -14,7 +14,7 @@
 #' @import aricode
 #' @import mclust
 #' @import RPEnsemble
-#'
+#' @import ggplot2
 #'
 #' @export
 clustRstab <-  function(
@@ -26,6 +26,7 @@ clustRstab <-  function(
   clCompScore = aricode::MARI,
   nsim = 100,
   baseLineCorrection = FALSE,
+  plot = TRUE,
   nProp = 0.7,
   pProp = 0.9,
   noiseGaussianMean = 0,
@@ -80,10 +81,15 @@ clustRstab <-  function(
                                      data = data,
                                      clAlgo = clAlgo)
 
-    clustRstab <- as.data.frame(data.matrix(clustRstabInit) - data.matrix(clustRstabBaseLine) + 1)
+    clustRstab <- as.data.frame(data.matrix(clustRstabInit) - data.matrix(clustRstabBaseLine))
+    clustRstab[1,] <- clustRstab[1,] + 1
     colnames(clustRstab) <- colnames(clustRstabInit)
     rownames(clustRstab) <- rownames(clustRstabInit)
   }
-  plot(y = clustRstab[1,], x = kVec, type = "l", ylim = c(0,1))
+  if (plot == TRUE){
+    clustRstabPlot <- clustRstabPlot(clustRstabObj = clustRstab, kVec = kVec, nsim = nsim)
+    print(clustRstabPlot)
+    #plot(y = clustRstab[1,], x = kVec, type = "l", ylim = c(0,1))
+  }
   clustRstab
 }

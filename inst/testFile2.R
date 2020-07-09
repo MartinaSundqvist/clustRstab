@@ -32,6 +32,8 @@ clCompScore1 = aricode::NID
 perturbedDataFun1 = randProjData
 typeOfComp1 <- "toInitial"
 baseLineCorrection1 = TRUE
+plot1 = TRUE
+
 
 getMultiNormalData <- function(nb.grs, obsPerGr, vec.mu, vec.sd,
                                n.col.signal, n.col.noise = 0){
@@ -58,14 +60,14 @@ dat <- getMultiNormalData(nb.grs = trueK,
 # 7.d Compute Cluster Stability
 start_time <- Sys.time()
 
-clustRstab(data= dat,
+tmp <- clustRstab(data= dat,
            perturbedDataFun = perturbedDataFun1,
             kVec = kVec1,
             typeOfComp = typeOfComp1,
             clCompScore = clCompScore1,
             clAlgo = clAlgo1,
-            nsim = nsim1, baseLineCorrection = baseLineCorrection1)
-
+            nsim = nsim1, baseLineCorrection = baseLineCorrection1,
+           plot = plot1)
 
 end_time <- Sys.time()
 print(end_time - start_time)
