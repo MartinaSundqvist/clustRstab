@@ -27,11 +27,11 @@ kVec1 <- 2:Kmax1
 nsim1 <- 100
 nProp1 <- 0.7
 pProp1 <- 0.7
-clAlgo1 <- clAlgoHCWard
+clAlgo1 <- clAlgoKmeans
 clCompScore1 = aricode::NID
 perturbedDataFun1 = randProjData
-typeOfComp1 <- "toInitial"
-baseLineCorrection1 = TRUE
+typeOfComp1 <- "random"
+baseLineCorrection1 = F
 plot1 = TRUE
 
 
@@ -68,7 +68,20 @@ tmp <- clustRstab(data= dat,
             clAlgo = clAlgo1,
             nsim = nsim1, baseLineCorrection = baseLineCorrection1,
            plot = plot1)
-
+print(tmp)
 end_time <- Sys.time()
 print(end_time - start_time)
 
+#(grepl("NID", deparse(substitute(clCompScore))))
+
+
+# n <- nrow(dat)
+# mclapply(1:length(tmp), function(i) {
+#   cl <- sapply(kVec1, function(k){
+#     clAlgo1(data = tmp[[i]], k = k)})
+#   mat <- as.data.frame(matrix(ncol = length(kVec1), nrow = n, NA)) # For when all samples have not been sampled!
+#   mat[rownames(cl), ] <- cl
+#   mat <- cbind(mat, rep(paste0("df.", i), n))
+#   colnames(mat) <- c(kVec1, "df")
+# cl
+# }, mc.cores = 2)

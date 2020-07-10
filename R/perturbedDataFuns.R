@@ -1,4 +1,13 @@
 
+#' A function to subsample a dataset
+#'
+#' subSample() subsamples nProp observation and pProp variables of a n x p data.frame
+#'
+#'
+#'@param data A n x p data.frame() with n the number of observations and p the number of varaibles
+#'@param nProp The proportion of subsampled observations
+#'@param pProp The proportion of subsampled variables
+#'
 #'
 #' @export
 subSample <- function(data, nProp, pProp, ...){

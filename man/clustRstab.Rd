@@ -8,7 +8,7 @@ clustRstab(
   data,
   kVec,
   typeOfComp = "all",
-  perturbedDataFun = clustRstab::subsample,
+  perturbedDataFun = clustRstab::subSample,
   clAlgo = clustRstab::clAlgoKmeans,
   clCompScore = aricode::MARI,
   nsim = 100,
@@ -19,7 +19,8 @@ clustRstab(
   noiseGaussianMean = 0,
   noiseGaussianSD = 1,
   randProjMethod = "Haar",
-  randProjDim = 10
+  randProjDim = 10,
+  mc.cores = 2
 )
 }
 \arguments{
