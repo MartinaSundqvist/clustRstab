@@ -4,6 +4,7 @@
 
 # getScore() computes cluster comparaisons between all clusterings (by K) using MARI
 
+#' @importFrom utils combn
 getScore <- function(typeOfComp,
                      clCompScore,
                      clsByKList,

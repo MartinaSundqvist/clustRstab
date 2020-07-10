@@ -10,7 +10,7 @@ clustRstabPlot <- function(clustRstabObj, kVec, nsim){
 
 # graphical representation empirical variance
   clustRstabPlot <- ggplot(toPlot) +
-    aes(x=nbGrs, y=clustRstab) +
+    aes_string(x='nbGrs', y='clustRstab') +
     geom_ribbon(aes(ymin = clustRstab - sd,
                     ymax = clustRstab + sd),
                 fill = "grey70") +
