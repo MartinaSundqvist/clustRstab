@@ -20,8 +20,6 @@
 #' @import ggplot2
 #' @importFrom stats cutree dist hclust kmeans rnorm sd
 #'
-#' @example
-#'
 #' @export
 clustRstab <-  function(
   data,
