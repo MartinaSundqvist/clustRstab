@@ -31,11 +31,17 @@ clustRstab(
 
 \item{clAlgo}{a function: the clustering method used}
 
-\item{clCompScore}{dqsdsq}
+\item{clCompScore}{dqsds}
 
 \item{nsim}{a scalar, the number of simulation performed to estimate the clustergin stability}
 
-\item{param}{a list, dqsdqs}
+\item{baseLineCorrection}{dada}
+
+\item{plot}{dazadz}
+
+\item{nProp}{azdzd}
+
+\item{pProp}{fsdfsd}
 }
 \description{
 clustRstab() computes cluster stability as the arithmetic mean of the cluster comparision

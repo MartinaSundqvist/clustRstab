@@ -7,14 +7,20 @@
 #' @param kVec a vector for the successive number of group considered
 #' @param perturbedDataFun a function for perturbing the original data
 #' @param clAlgo a function: the clustering method used
-#' @param clCompScore dqsdsq
-#' @param param a list, dqsdqs
+#' @param clCompScore dqsds
 #' @param nsim a scalar, the number of simulation performed to estimate the clustergin stability
+#' @param baseLineCorrection dada
+#' @param plot dazadz
+#' @param nProp azdzd
+#' @param pProp fsdfsd
 #'
 #' @import aricode
 #' @import mclust
 #' @import RPEnsemble
 #' @import ggplot2
+#' @importFrom stats cutree dist hclust kmeans rnorm sd
+#'
+#' @example
 #'
 #' @export
 clustRstab <-  function(
