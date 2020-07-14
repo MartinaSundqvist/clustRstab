@@ -28,7 +28,7 @@ nsim1 <- 100
 nProp1 <- 0.7
 pProp1 <- 0.7
 clAlgo1 <- clAlgoKmeans
-clCompScore1 = aricode::NID
+clCompScore1 = aricode::MARI
 perturbedDataFun1 = randProjData
 typeOfComp1 <- "random"
 baseLineCorrection1 = F

@@ -11,6 +11,7 @@ getCl <- function(perturbedDataList, data, kVec, clAlgo, mc.cores){
   lapply(1:length(perturbedDataList), function(i) {
     cl <- sapply(kVec, function(k){
     clAlgo(data = perturbedDataList[[i]], k = k)})
+    #rownames(cl) <- 1:n
     mat <- as.data.frame(matrix(ncol = length(kVec), nrow = n, NA)) # For when all samples have not been sampled!
     mat[rownames(cl), ] <- cl
     mat <- cbind(mat, rep(paste0("df.", i), n))
