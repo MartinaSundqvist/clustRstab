@@ -63,7 +63,7 @@ labels_colors(dend) <- as.character(labelCols)
 
 
 ## Get classifications
-nbGrs <- 5 # Set the number of groups
+nbGrs <- 9 # Set the number of groups
 
 HclustCl <- cutree(dend, k = nbGrs)[dendoLabelOrder] # HAC classification
 KmeansCl <- as.factor(kmeans(data, nbGrs)$cluster[dendoLabelOrder]) # k-means classification
@@ -156,12 +156,12 @@ fviz_mclust_bic_01<- function (object, model.names = NULL, shape = 19, color = "
 }
 #-----------------------------------------------------
 
-GMM <- Mclust(data, modelNames = c("EII", "EEI"), G = 1:kMax)
+GMM <- Mclust(data, modelNames = c("EII", "EEI", "VEI"), G = 1:kMax)
 # The best model is VEI when all models are studied
 
 plot.gmm <- fviz_mclust_bic_01(GMM, model.names = NULL, shape = 19,
                                color = "model",
-                               palette = c( "#52854C","#4E84C4"),  # "#293352"),
+                               palette = c( "#52854C","#4E84C4", "#293352"),
                                legend = NULL,
                                main = "GMM - Model selection",
                                xlab = "Number of clusters K",
@@ -202,32 +202,63 @@ NCIclustRstabPprop <- mclapply(nPropVec, function(i) {
              plot = F, pProp = i, nProp = 1)
 }, mc.cores = 8)
 
+save(nPropVec, NCIclustRstabNprop, NCIclustRstabNprop, file = "inst/NCIclustRstab.RData")
 
-
-# NID - Prepare simulated data to be ploted
-toPlotNID <- data.frame(mean = melt(clCompNID$clCompScoreMean[,propsToKeep]), sd=melt(clCompNID$clCompScoreSD[,propsToKeep])[,3])
-colnames(toPlotNID) <- c("nb.grs", "Var.Prop", "meanNID", "sd" )
-toPlotNID$Var.Prop <- as.factor(toPlotNID$Var.Prop)
-
-
-
-plot.clustStabNID <- ggplot() +
-  geom_line(data = toPlotNID, aes(x=nb.grs, y=meanNID,
-                                  group=Var.Prop, colour = Var.Prop)) +
-  geom_ribbon(data = toPlotNID, aes(x = nb.grs,
-                                    ymin=meanNID-sd,
-                                    ymax=meanNID+sd,
-                                    group=Var.Prop), alpha=0.2) +
+# Prepare plot with diff nProp
+plot.clustRstab <- do.call(what = rbind, args = lapply(1:length(nPropVec),
+                                           function(i) cbind(t(NCIclustRstabNprop[[i]][1:2,]),
+                                                             K = 2:kMax,
+                                                             nProp = rep(nPropVec[i], length(2:kMax))
+                                                             ))) %>%
+  as.tibble() %>%
+  mutate(nProp = as.factor(nProp)) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                                   group=nProp, colour = nProp)) +
+  geom_ribbon(aes(x = K,
+                                     ymin=mean-sd,
+                                     ymax=mean+sd,
+                                     group=nProp), alpha=0.2) +
   # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
-  scale_x_continuous(breaks = k_vec) +
+  scale_x_continuous(breaks = 2:kMax) +
   ggtitle(paste("Cluster stability")) +
-  ylab("Mean NID") +
+  ylab("Mean clustRstab") +
   xlab("Number of clusters K") +
   scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
-  ylim(0,1) +
+  ylim(-0.05, 1.05) +
   theme_minimal()
 
-plot.clustStabNID
+
+plot.clustRstab
+
+
+#
+# clustRstabPlot <- do.call(what = rbind, args = lapply(1:length(nPropVec),
+#                                                       function(i) cbind(t(NCIclustRstabPprop[[i]][1:2,]),
+#                                                                         K = 2:kMax,
+#                                                                         nProp = rep(nPropVec[i], length(2:kMax))
+#                                                       ))) %>%
+#   as.tibble() %>%
+#   mutate(nProp = as.factor(nProp)) %>%
+#   ggplot() +
+#   geom_line(aes(x=K, y=mean,
+#                 group=nProp, colour = nProp)) +
+#   geom_ribbon(aes(x = K,
+#                   ymin=mean-sd,
+#                   ymax=mean+sd,
+#                   group=nProp), alpha=0.2) +
+#   # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
+#   scale_x_continuous(breaks = 2:kMax) +
+#   ggtitle(paste("Cluster stability")) +
+#   ylab("Mean clustRstab") +
+#   xlab("Number of clusters K") +
+#   scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+#   ylim(-0.05, 1.05) +
+#   theme_minimal()
+#
+#
+# clustRstabPlot
+
 
 
 # ----------------------------------------------------------------------------
@@ -239,9 +270,27 @@ plotGrSelect <- ggdraw() +
   draw_plot(plot.elbow, 0, .5, 0.33, .5) +
   draw_plot(plot.silhouette, .33, .5, .33, .5) +
   draw_plot(plot.gap, .66, .5, .33, .5) +
-  draw_plot(plot.gmm, 0, 0, .5, .5) +
+  draw_plot(plot.clustRstab, 0, 0, .5, .5) +
   draw_plot(plot.gmm, .5, 0, .5, .5) +
   draw_plot_label(c("A", "B", "C", "D", "E" ), c(0, 0.33, 0.66, 0, 0.5), c(1, 1, 1, 0.5, 0.5), size = 15)
 plotGrSelect
+
+# ----------------------------------------------------------------------------
+# Evolution MARI avec les classif kmeans / hclust vs labels
+# ---------------------------------------------------------------------------
+
+library(aricode)
+library(clustRstab)
+
+MARItoPlot <- cbind(HclustWard = sapply(2:kMax, function(i) MARI(type, clAlgoHCWard(data, i))),
+                    Kmeans = sapply(2:kMax, function(i) MARI(type, clAlgoKmeans(data, i))),
+                    K = 2:kMax)
+
+plot(y = sapply(2:kMax, function(i) MARI(type, kmeans(data, i)$cluster)), x = 2:kMax, type = "l")
+
+
+
+
+
 
 
