@@ -22,11 +22,11 @@ vars <- 100
 
 
 # 7.b Cluster Stability Parammeters
-Kmax1 <- 8
+Kmax1 <- 15
 kVec1 <- 2:Kmax1
 nsim1 <- 100
-nProp1 <- 0.7
-pProp1 <- 0.7
+nProp1 <- 0.8
+pProp1 <- 0.8
 clAlgo1 <- clAlgoKmeans
 clCompScore1 = aricode::MARI
 perturbedDataFun1 = randProjData

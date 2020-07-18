@@ -1,3 +1,15 @@
+library(clustRstab)
+
+clustRstab(data,
+           perturbedDataFun = subSample,
+           nsim = 100,
+           kVec = 2:15,
+           clAlgo = clAlgoKmeans,
+           clCompScore = MARI,
+           typeOfComp = "random",
+           baseLineCorrection = FALSE,
+           plot = TRUE)
+
 
 ############ NEW TEST ################
 
@@ -23,7 +35,7 @@ data <- t(NCI60$expr) %>% # A 59 x 6830 dataframe with gene expression for the 5
 # Select genes
 geneSD <- apply(data, 2, sd)
 geneSelect <- geneSD %>%
-  density %>% plot(., main = '', xlab = '', ylim = c(0,2.7))
+  density %>% plot(., main = 'Desity plot', xlab = "Standard Deviation", ylab = "density" , ylim = c(0,2.7))
 treshold <- 0.8
 xfit<-seq(0, max(geneSD),length=length(geneSD))
 yfit<-dnorm(xfit,mean=0.48,sd=0.15)
@@ -31,7 +43,7 @@ lines(xfit, yfit, col="blue", lwd=1, lty = 2 )
 
 yfit<-dnorm(xfit,mean=0.8,sd=0.45)
 lines(xfit, yfit, col="red", lwd=1, lty = 2)
-abline(v = treshold)
+abline(v = treshold, lty = 2, col = "blue")
 graphics::legend("topright", legend = c(" ", " "),
                text.width = strwidth("1,000,000"),
                lty = 1:2, xjust = 1, yjust = 1, inset = 1/10,
@@ -191,7 +203,7 @@ NCIclustRstabNprop <- mclapply(nPropVec, function(i) {
 
 nPropVec <- c(0.65, 0.75, 0.85)
 
-NCIclustRstabPprop <- mclapply(nPropVec, function(i) {
+NCIclustRstabNPprop <- mclapply(nPropVec, function(i) {
   clustRstab(data= data,
              perturbedDataFun = subSample,
              kVec = 2:15,
@@ -199,10 +211,13 @@ NCIclustRstabPprop <- mclapply(nPropVec, function(i) {
              clCompScore = aricode::MARI,
              clAlgo = clAlgoKmeans,
              nsim = 500, baseLineCorrection = F,
-             plot = F, pProp = i, nProp = 1)
+             plot = F, pProp = i, nProp = i)
 }, mc.cores = 8)
 
-save(nPropVec, NCIclustRstabNprop, NCIclustRstabNprop, file = "inst/NCIclustRstab.RData")
+save(nPropVec, NCIclustRstabNprop, NCIclustRstabNprop, NCIclustRstabNPprop, file = "inst/NCIclustRstab.RData")
+
+
+
 
 # Prepare plot with diff nProp
 plot.clustRstab <- do.call(what = rbind, args = lapply(1:length(nPropVec),
@@ -282,15 +297,79 @@ plotGrSelect
 library(aricode)
 library(clustRstab)
 
-MARItoPlot <- cbind(HclustWard = sapply(2:kMax, function(i) MARI(type, clAlgoHCWard(data, i))),
-                    Kmeans = sapply(2:kMax, function(i) MARI(type, clAlgoKmeans(data, i))),
-                    K = 2:kMax)
+MARItoPlot <- cbind(MARI = c(sapply(2:kMax, function(i) MARI(type, clAlgoHCWard(data, i))),
+                    sapply(2:kMax, function(i) MARI(type, clAlgoKmeans(data, i))),
+                    sapply(2:kMax, function(i) MARI(type, clAlgoGmmEII(data, i)))),
+                    K = rep(2:kMax, 3),
+                    clAlgo = c(rep("HCward", length(2:kMax)),
+                               rep("k-means", length(2:kMax)),
+                               c(rep("GMM-EII", length(2:kMax))))) %>%
+  as.tibble() %>%
+  mutate(MARI = as.numeric(MARI), K = as.numeric(K), clAlgo = as.factor(clAlgo)) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=MARI,
+                group=clAlgo, colour = clAlgo)) +
+  scale_x_continuous(breaks = 2:kMax) +
+  #ggtitle(paste("Cluster comparison for cancer type classification")) +
+  ylab("MARI") +
+  xlab("Number of clusters K") +
+  geom_hline(yintercept=0.5, linetype="dashed", color = "black") +
+  #scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylim(0.0, 1.0) +
+  theme_minimal()
 
-plot(y = sapply(2:kMax, function(i) MARI(type, kmeans(data, i)$cluster)), x = 2:kMax, type = "l")
+
+MARItoPlot
 
 
 
 
+# cbind(MARI = c(sapply(2:kMax, function(i) NID(type, clAlgoHCWard(data, i))),
+#                              sapply(2:kMax, function(i) NID(type, clAlgoKmeans(data, i))),
+#                              sapply(2:kMax, function(i) NID(type, clAlgoGmmEII(data, i)))),
+#                     K = rep(2:kMax, 3),
+#                     clAlgo = c(rep("HCward", length(2:kMax)),
+#                                rep("k-means", length(2:kMax)),
+#                                c(rep("GMM-", length(2:kMax))))) %>%
+#   as.tibble() %>%
+#   mutate(MARI = as.numeric(MARI), K = as.numeric(K), clAlgo = as.factor(clAlgo)) %>%
+#   ggplot() +
+#   geom_line(aes(x=K, y=MARI,
+#                 group=clAlgo, colour = clAlgo)) +
+#   scale_x_continuous(breaks = 2:kMax) +
+#   ggtitle(paste("Cluster comparison for cancer type classification")) +
+#   ylab("MARI") +
+#   xlab("Number of clusters K") +
+#   #scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+#   ylim(0.0, 1.0) +
+#   theme_minimal()
 
+
+
+# ----------------------------------------------------------------------------
+# Evolution MARI avec les classif kmeans / hclust vs labels
+# ---------------------------------------------------------------------------
+
+table(type, clAlgoKmeans(data, 9))
+table(type, clAlgoKmeans(data, 4));table(type, clAlgoHCWard(data, 6))
+
+kable(table(type, clAlgoHCWard(data, 4)))
+
+clustRstab(data,
+           perturbedDataFun = subSample,
+           nsim = 500,
+           kVec = 2:15,
+           clAlgo = clAlgoKmeans,
+           clCompScore = MARI,
+           typeOfComp = "all",
+           baseLineCorrection = FALSE,
+           plot = TRUE)
+subSample(data, nProp = 0.8, pProp = 0.8)
+noiseGaussian(data, noiseGaussianMean = 0, noiseGaussianSD = 1)
+randProjData(data, randProjDim = 20, randProjMethod = "Haar")
+
+clAlgoGmmEEI(data, k = 3)
+clAlgoHCWard(data, k = 3)
+clAlgoKmeans(data, k = 3)
 
 
