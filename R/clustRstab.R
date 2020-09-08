@@ -37,7 +37,7 @@ clustRstab <-  function(
   noiseGaussianMean = 0,
   noiseGaussianSD = 1,
   randProjMethod = "Haar",
-  randProjDim = 10,
+  randProjDim = 20,
   mc.cores = 2
   ){
 
