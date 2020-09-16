@@ -39,15 +39,11 @@ trueK <- 7
 nPerGr <- 50
 grMeans <- c(-6,-4,-2,0,2,4,6)
 grMeans2 <- c(-6,-4,-2,0,2,5,6)
-sim.sd <- rep(0.7, trueK)
+sim.sd <- rep(1, trueK)
 #grSD <- rep(sim.sd, trueK)
 vars <- 20
 nsim = 500
 
-clAlgoKmeans2 <- function(data, k){
-  cl <- kmeans(x = data, centers = k)$cluster
-  cl
-}
 
 # Cluster Stability Parammeters
 Kmax <- 20
@@ -55,6 +51,14 @@ kVec <- 2:Kmax
 clAlgo <- clAlgoKmeans
 clCompScore = aricode::NID
 typeOfComp <- "all"
+
+
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+# SIMULATIONS !!!
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+
 
 
 #----------------------------------------------------------------
@@ -93,17 +97,11 @@ simu2IM <- TheoClustRstab(dataList = dataList2,
                           plot = FALSE)
 
 
-# First case
-
-
 #----------------------------------------------------------------
 # Subsampled cluster stability
 #----------------------------------------------------------------
 
-
 # First case
-
-
 data <- getMultiNormalData(nbGrs = trueK,
                            nPerGr = nPerGr,
                             muVec = grMeans,
@@ -125,45 +123,7 @@ simu1SM <-  mclapply(pPropVec, function(p)
   mc.cores = 14)
 
 
-# PLOT !
-
-simu1IMPlot <- as.data.frame(t(rbind(nb.grs = kVec, simu1IM)))
-
-
-plot.clustRstab1 <- do.call(what = rbind,
-                            args = lapply(1:length(pPropVec),
-                                          function(i) cbind(t(simu1SM[[i]][1:2,]),
-                                                            K = 2:Kmax,
-                                                            pProp = rep(pPropVec[i], length(2:Kmax))
-                                          ))) %>%
-  as.tibble() %>%
-  # mutate(pProp = as.factor(pProp)) %>%
-  ggplot() +
-  geom_line(aes(x=K, y=mean,
-                group=pProp, colour = pProp)) +
-  geom_ribbon(aes(x = K,
-                  ymin=mean-sd,
-                  ymax=mean+sd,
-                  group=pProp), alpha=0.1) +
-  geom_vline(xintercept = trueK, color = "black", linetype="dashed") +
-  geom_line(data = simu1IMPlot, aes(x=nb.grs, y=mean), colour = "red", size = 1.2) +
-  geom_ribbon(data = simu1IMPlot, aes(x = nb.grs,
-                                      ymin=mean-sd,
-                                      ymax=mean+sd), alpha=0.01, colour = "red", linetype = "dotted") +
-  scale_x_continuous(breaks = 2:Kmax) +
-  # ggtitle(paste("Cluster stability")) +
-  ylab("Cluster Stability (mean NID)") +
-  xlab("Number of clusters K") +
-  # scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
-  ylim(-0.05, 0.4) +
-  theme_bw()
-
-print(plot.clustRstab1)
-
-
 # Second case
-
-
 data <- getMultiNormalData(nbGrs = trueK,
                            nPerGr = nPerGr,
                            muVec = grMeans2,
@@ -183,69 +143,135 @@ simu2SM <-  mclapply(pPropVec, function(p)
   mc.cores = 14)
 
 
-# PLOT !
-
-simu2IMPlot <- as.data.frame(t(rbind(nb.grs = kVec, simu2IM)))
-
-
-plot.clustRstab2 <- do.call(what = rbind,
-                           args = lapply(1:length(pPropVec),
-                                         function(i) cbind(t(simu2SM[[i]][1:2,]),
-                                                           K = 2:Kmax,
-                                                           pProp = rep(pPropVec[i], length(2:Kmax))
-                                         ))) %>%
-  as.tibble() %>%
-  # mutate(pProp = as.factor(pProp)) %>%
-  ggplot() +
-  geom_line(aes(x=K, y=mean,
-                group=pProp, colour = pProp)) +
-  geom_ribbon(aes(x = K,
-                  ymin=mean-sd,
-                  ymax=mean+sd,
-                  group=pProp), alpha=0.1) +
-  geom_vline(xintercept = trueK, color = "black", linetype="dashed") +
-  geom_line(data = simu2IMPlot, aes(x=nb.grs, y=mean), colour = "red", size = 1.2) +
-  geom_ribbon(data = simu2IMPlot, aes(x = nb.grs,
-                  ymin=mean-sd,
-                  ymax=mean+sd), alpha=0.01, colour = "red", linetype = "dotted") +
-  scale_x_continuous(breaks = 2:Kmax) +
-  # ggtitle(paste("Cluster stability")) +
-  ylab("Cluster Stability (mean NID)") +
-  xlab("Number of clusters K") +
-  # scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
-  ylim(-0.05, 0.4) +
-  theme_bw()
-
-
-print(plot.clustRstab2)
-
-
+#------------------------------------------
+#------------------------------------------
+# PLOTS
+#------------------------------------------
+#------------------------------------------
 
 #------------------------------------------
 # Data representation
 #------------------------------------------
 
 # First case
-dataReptoPlot <- dataList[[1]] %>%
-  select(V1,V2) %>%
-  mutate(V1 = as.numeric(V1), V2 = as.numeric(V2), groups = as.factor(rep(1:trueK, each =nPerGr )))
-glimpse(dataReptoPlot)
+p1 <-  dataList[[2]] %>%
+    select(V1,V2) %>%
+    mutate(V1 = as.numeric(V1),
+           V2 = as.numeric(V2),
+           groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, V2, colour = groups)) +
+    geom_point(alpha = 0.5) +
+    scale_colour_brewer(palette = "Dark2") +
+    theme_bw() +
+    ylab("V2")+
+    scale_y_continuous(breaks = seq(-8, 8, by=2))+
+    scale_x_continuous(breaks = seq(-8, 8, by=2))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        plot.margin =  unit(c(5.5,5.5,5.5,10), "pt")) +
+  geom_vline(xintercept=seq(-6,6, by = 2), linetype="dotted")
 
-ggplot(dataReptoPlot, aes(V1, V2, colour = groups)) +
+p2 <-  dataList2[[2]] %>%
+  select(V1,V2) %>%
+  mutate(V1 = as.numeric(V1),
+         V2 = as.numeric(V2),
+         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, V2, colour = groups)) +
   geom_point(alpha = 0.5) +
   scale_colour_brewer(palette = "Dark2") +
   theme_bw() +
-  stat_ellipse()
+  ylab("V'2")+
+  scale_y_continuous(breaks = seq(-8, 8, by=2))+
+  scale_x_continuous(breaks = seq(-8, 8, by=2))+
+  theme(axis.title.x=element_blank(),
+                axis.text.x=element_blank(),
+               axis.ticks.x=element_blank(),
+        plot.margin =  unit(c(5.5,5.5,5.5,10), "pt"))+
+  geom_vline(xintercept=c(seq(-6,2, by = 2),5,6), linetype="dotted")
 
 
-dataReptoPlot2 <- dataList2[[1]] %>%
-  select(V1,V2) %>%
-  mutate(V1 = as.numeric(V1), V2 = as.numeric(V2), groups = as.factor(rep(1:trueK, each =nPerGr )))
-glimpse(dataReptoPlot)
+# library(RColorBrewer)
+# brewer.pal(n = 8, name = "Dark2") # To get colors !
 
-ggplot(dataReptoPlot2, aes(V1, V2, colour = groups)) +
-  geom_point(alpha = 0.5) +
+p3 <-  dataList[[2]] %>%
+  select(V1) %>%
+  mutate(V1 = as.numeric(V1),
+         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, color = groups, fill = groups)) +
+  geom_density(alpha = 0.3) +
   scale_colour_brewer(palette = "Dark2") +
-  theme_bw()+
-  stat_ellipse()
+  theme_bw() +
+  xlab("V1")+
+  scale_fill_manual( values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666")) +
+  scale_x_continuous(breaks = seq(-8, 8, by=2)) +
+  geom_vline(xintercept=seq(-6,6, by = 2), linetype="dotted")
 
+p4 <-  dataList2[[2]] %>%
+  select(V1) %>%
+  mutate(V1 = as.numeric(V1),
+         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, color = groups, fill = groups)) +
+  geom_density(alpha = 0.3) +
+  scale_colour_brewer(palette = "Dark2") +
+  theme_bw() +
+  xlab("V'1")+
+  scale_fill_manual( values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666")) +
+  scale_x_continuous(breaks = seq(-8, 8, by=2)) +
+  geom_vline(xintercept=c(seq(-6,2, by = 2),5,6), linetype="dotted")
+
+
+#library(ggpubr)
+ggarrange(p1, p2, p3, p4, ncol=2, nrow = 2, common.legend = TRUE, legend="right")
+
+#----------------------------------------------------------------
+# Global representation of simu study (with facet but not used for chapter)
+#----------------------------------------------------------------
+# Theoretical results
+simu.clustRstabALLTheo <- rbind(
+  cbind(t(rbind(nb.grs = kVec, simu1IM)), simuCase = rep(1, length(2:Kmax))),
+  cbind(t(rbind(nb.grs = kVec, simu2IM)), simuCase = rep(2, length(2:Kmax)))) %>%
+  as.tibble() %>%
+  mutate(simuCase = factor(simuCase, levels = c(1, 2), labels = c("Symmetrical", "Unsymmetrical")))
+
+
+
+# The plot with the sampled results
+plot.clustRstabALL <- rbind(do.call(what = rbind,
+                                    args = lapply(1:length(pPropVec),
+                                                  function(i) cbind(t(simu1SM[[i]][1:2,]),
+                                                                    K = 2:Kmax,
+                                                                    nb.vars = rep(pPropVec[i]*vars, length(2:Kmax)),
+                                                                    simuCase = rep(1, length(2:Kmax))
+                                                  ))),
+                            do.call(what = rbind,
+                                    args = lapply(1:length(pPropVec),
+                                                  function(i) cbind(t(simu2SM[[i]][1:2,]),
+                                                                    K = 2:Kmax,
+                                                                    nb.vars = rep(pPropVec[i]*vars, length(2:Kmax)),
+                                                                    simuCase = rep(2, length(2:Kmax))
+                                                  )))
+) %>%
+  as.tibble() %>%
+  mutate(simuCase = factor(simuCase, levels = c(1, 2), labels = c("Symmetrical", "Unsymmetrical"))) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                group=nb.vars, colour = nb.vars)) +
+  geom_ribbon(aes(x = K,
+                  ymin=mean-sd,
+                  ymax=mean+sd,
+                  group=nb.vars), alpha=0.1) +
+  geom_vline(xintercept = trueK, color = "black", linetype="dashed") +
+  geom_line(data = simu.clustRstabALLTheo, aes(x=nb.grs, y=mean), colour = "red", size = 1.2) +
+  geom_ribbon(data = simu.clustRstabALLTheo, aes(x = nb.grs,
+                                                 ymin=mean-sd,
+                                                 ymax=mean+sd), alpha=0.01, colour = "red", linetype = "dotted") +
+  scale_x_continuous(breaks = 2:Kmax) +
+  # ggtitle(paste("Cluster stability")) +
+  ylab("Cluster Stability (mean NID)") +
+  xlab("Number of clusters K") +
+  # scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylim(-0.05, 0.5) +
+  theme_bw()
+
+plot.clustRstabALL + facet_grid(.~ simuCase)
