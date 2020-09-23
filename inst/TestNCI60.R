@@ -352,7 +352,6 @@ MARItoPlot
 
 table(type, clAlgoKmeans(data, 9))
 table(type, clAlgoKmeans(data, 4));table(type, clAlgoHCWard(data, 6))
-
 kable(table(type, clAlgoHCWard(data, 4)))
 
 clustRstab(data,
@@ -372,4 +371,340 @@ clAlgoGmmEEI(data, k = 3)
 clAlgoHCWard(data, k = 3)
 clAlgoKmeans(data, k = 3)
 
+
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+# Illustration of clustRstab package
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+# Data perturbation
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+
+
+
+#----------------------------------------------------------------
+# nProp
+#----------------------------------------------------------------
+nPropVec <- c(0.65, 0.75, 0.85)
+kMax = 15
+nsim = 5
+
+NCIclustRstabNprop <- mclapply(nPropVec, function(i) {
+  clustRstab(data= data,
+             perturbedDataFun = clustRstab::subSample,
+             kVec = 2:kMax,
+             typeOfComp = "all",
+             clCompScore = aricode::MARI,
+             clAlgo = clustRstab::clAlgoKmeans,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F, nProp = i, pProp = 1)
+}, mc.cores = 8)
+
+
+#----------------------------------------------------------------
+# adding noise
+#----------------------------------------------------------------
+
+noiseMeanVec <- c(0,1,1)
+noiseSDVec <- c(1,2,3)
+params <- cbind(noiseMeanVec, noiseSDVec)
+
+
+NCIclustRstabNoise <- mclapply(1:3, function(i) {
+  clustRstab(data= data,
+             perturbedDataFun = clustRstab::noiseGaussian,
+             kVec = 2:kMax,
+             typeOfComp = "all",
+             clCompScore = aricode::MARI,
+             clAlgo = clAlgoKmeans,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F, noiseGaussianMean = params[i,1],
+             noiseGaussianSD = params[i,2] )
+}, mc.cores = 12)
+
+
+
+
+
+#----------------------------------------------------------------
+# Random projection
+#----------------------------------------------------------------
+
+
+randProjVec <- c(10, 100, 500)
+
+NCIclustRstabRandProj <- mclapply(1:3, function(i) {
+  clustRstab(data= data,
+             perturbedDataFun = clustRstab::randProjData,
+             kVec = 2:kMax,
+             typeOfComp = "all",
+             clCompScore = aricode::MARI,
+             clAlgo = clAlgoKmeans,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F, randProjMethod = "Haar", randProjDim = randProjVec[i])
+}, mc.cores = 12)
+
+
+plot.clustRstabRandProj
+
+
+#----------------------------------------------------------------
+# Clustering Function
+#----------------------------------------------------------------
+
+funsClust <- list(
+  kMeans = clustRstab::clAlgoKmeans,
+  HAC_Ward = clustRstab::clAlgoHCWard,
+  GMM = clustRstab::clAlgoGmmEII
+)
+
+NCIclustRstabClustRFun <- mclapply(funsClust, function(i) {
+  clustRstab(data = data,
+             perturbedDataFun = clustRstab::subSample,
+             kVec = 2:kMax,
+             typeOfComp = "all",
+             clCompScore = aricode::MARI,
+             clAlgo = i,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F)
+}, mc.cores = 12)
+
+
+
+#----------------------------------------------------------------
+# Type of comparison
+#----------------------------------------------------------------
+
+
+comp <- c("all", "random", "toInitial")
+
+NCIclustRstabComp <- mclapply(1:3, function(i) {
+  clustRstab(data= data,
+             perturbedDataFun = clustRstab::subSample,
+             kVec = 2:kMax,
+             typeOfComp = comp[i],
+             clCompScore = aricode::MARI,
+             clAlgo = clAlgoKmeans,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F)
+}, mc.cores = 12)
+
+
+
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+# Type of score
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+funsScore <- list(
+  MARI = aricode::MARI,
+  NID = aricode::NID
+)
+
+NCIclustRstabScore <- mclapply(funsScore, function(i) {
+  clustRstab(data= data,
+             perturbedDataFun = clustRstab::subSample,
+             kVec = 2:kMax,
+             typeOfComp = "all",
+             clCompScore = i,
+             clAlgo = clAlgoKmeans,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F)
+}, mc.cores = 12)
+
+
+
+
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+# Plots
+#----------------------------------------------------------------
+#----------------------------------------------------------------
+
+# 1
+plot.clustRstabProp <- do.call(what = rbind, args = lapply(1:length(nPropVec),
+                                                           function(i) cbind(t(NCIclustRstabNprop[[i]][1:2,]),
+                                                                             K = 2:kMax,
+                                                                             nProp = rep(nPropVec[i], length(2:kMax))
+                                                           ))) %>%
+  as.tibble() %>%
+  mutate(nProp = as.factor(nProp)) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                group=nProp, colour = nProp)) +
+  geom_ribbon(aes(x = K,
+                  ymin=mean-sd,
+                  ymax=mean+sd,
+                  group=nProp), alpha=0.2) +
+  # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
+  scale_x_continuous(breaks = 2:kMax) +
+  #ggtitle(paste("Subsampling observations")) +
+  ylab("clustRstab") +
+  xlab(" ") +
+  scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylim(-0.05, 1.05) +
+  theme_minimal() +
+  theme(legend.key.size = unit(1.32, "cm"),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+
+#2
+plot.clustRstabNoise <- do.call(what = rbind, args = lapply(1:length(noiseMeanVec),
+                                                            function(i) cbind(t(NCIclustRstabNoise[[i]][1:2,]),
+                                                                              K = 2:kMax,
+                                                                              GaussianNoise = rep(i, length(2:kMax))
+                                                            ))) %>%
+  as.tibble() %>%
+  mutate(GaussianNoise = factor(GaussianNoise, levels = 1:3, labels = c(paste('\u03bc',"=0, ", '\u03C3', "=1"), "\u03bc=1, \u03C3=2","\u03bc=1, \u03C3=3"))) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                group=GaussianNoise, colour = GaussianNoise)) +
+  geom_ribbon(aes(x = K,
+                  ymin=mean-sd,
+                  ymax=mean+sd,
+                  group=GaussianNoise), alpha=0.2) +
+  # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
+  scale_x_continuous(breaks = 2:kMax) +
+  #ggtitle(paste("Adding Gaussian Noise")) +
+  ylab(" ")+
+  xlab(" ") +
+  scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylim(-0.05, 1.05) +
+  theme_minimal() +
+  theme(        axis.title.x=element_blank(),
+                axis.text.x=element_blank(),
+                axis.ticks.x=element_blank())+
+  labs(colour = "noiseGaussian")
+
+#3
+plot.clustRstabRandProj <- do.call(what = rbind, args = lapply(1:length(noiseMeanVec),
+                                                               function(i) cbind(t(NCIclustRstabRandProj[[i]][1:2,]),
+                                                                                 K = 2:kMax,
+                                                                                 RandProjDim = rep(i, length(2:kMax))
+                                                               ))) %>%
+  as.tibble() %>%
+  mutate(RandProjDim = factor(RandProjDim, levels = 1:3, labels = c(10, 100, 500))) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                group=RandProjDim, colour = RandProjDim)) +
+  geom_ribbon(aes(x = K,
+                  ymin=mean-sd,
+                  ymax=mean+sd,
+                  group=RandProjDim), alpha=0.2) +
+  # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
+  ylab("clustRstab") +
+  scale_x_continuous(breaks = 2:kMax) +
+  #ggtitle("Random Prjection") +
+  xlab(" ") +
+  scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylim(-0.05, 1.05) +
+  theme_minimal() +
+  theme(        axis.title.x=element_blank(),
+                axis.text.x=element_blank(),
+                axis.ticks.x=element_blank())+
+  labs(colour = "randProjDim")
+
+
+#4
+plot.clustRstabClust <- do.call(what = rbind, args = lapply(1:3,
+                                                            function(i) cbind(t(NCIclustRstabClustRFun[[i]][1:2,]),
+                                                                              K = 2:kMax,
+                                                                              typeOfComp = rep(i, length(2:kMax))
+                                                            ))) %>%
+  as.tibble() %>%
+  mutate(typeOfComp = factor(typeOfComp, levels = 1:3, labels = c("kmeans", "HAC", "GMM"))) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                group=typeOfComp, colour = typeOfComp)) +
+  geom_ribbon(aes(x = K,
+                  ymin=mean-sd,
+                  ymax=mean+sd,
+                  group=typeOfComp), alpha=0.2) +
+  # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
+  scale_x_continuous(breaks = 2:kMax) +
+  # ggtitle("Different comparisons") +
+  ylab(" ")+
+  xlab(" ") +
+  scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylim(-0.05, 1.05) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(colour = "clAlgo")+
+ theme(legend.key.size = unit(1.28, "cm"),
+       axis.title.x=element_blank(),
+       axis.text.x=element_blank(),
+       axis.ticks.x=element_blank())
+
+
+
+#5
+plot.clustRstabComp <- do.call(what = rbind, args = lapply(1:length(noiseMeanVec),
+                                                           function(i) cbind(t(NCIclustRstabComp[[i]][1:2,]),
+                                                                             K = 2:kMax,
+                                                                             typeOfComp = rep(i, length(2:kMax))
+                                                           ))) %>%
+  as.tibble() %>%
+  mutate(typeOfComp = factor(typeOfComp, levels = 1:3, labels = c("all", "random", "toInitial"))) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                group=typeOfComp, colour = typeOfComp)) +
+  geom_ribbon(aes(x = K,
+                  ymin=mean-sd,
+                  ymax=mean+sd,
+                  group=typeOfComp), alpha=0.2) +
+  # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
+  scale_x_continuous(breaks = 2:kMax) +
+  # ggtitle("Different comparisons") +
+  ylab("clustRstab") +
+  xlab("Number of clusters K") +
+  scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylim(-0.05, 1.05) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(colour = "typeOfComp")
+
+
+# 6
+plot.clustRstabScore <- do.call(what = rbind, args = lapply(1:2,
+                                                               function(i) cbind(t(NCIclustRstabScore[[i]][1:2,]),
+                                                                                 K = 2:kMax,
+                                                                                 Score = rep(i, length(2:kMax))
+                                                               ))) %>%
+  as.tibble() %>%
+  mutate(Score = factor(Score, levels = 1:2, labels = c("MARI", "NID"))) %>%
+  ggplot() +
+  geom_line(aes(x=K, y=mean,
+                group=Score, colour = Score)) +
+  geom_ribbon(aes(x = K,
+                  ymin=mean-sd,
+                  ymax=mean+sd,
+                  group=Score), alpha=0.2) +
+  # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
+  scale_x_continuous(breaks = 2:kMax) +
+  #ggtitle("Different comparisons") +
+  ylab(" ")+
+  xlab("Number of clusters K") +
+  scale_color_manual(values=c( "#52854C","#4E84C4")) +
+  ylim(-0.05, 1.05) +
+  theme_minimal()+
+  labs(colour = "clCompScore") +
+  theme(legend.key.size = unit(1.56, "cm"))
+ #legenWidht = 1.5
+
+library(ggpubr)
+ggarrange(
+  plot.clustRstabProp,
+  plot.clustRstabNoise,
+  plot.clustRstabRandProj,
+  plot.clustRstabClust,
+  plot.clustRstabComp,
+  plot.clustRstabScore,  labels = c("A", "B", "C", "D", "E", "F"),
+  common.legend = FALSE, legend = "right", ncol = 2, nrow = 3
+)
 

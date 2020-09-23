@@ -142,92 +142,17 @@ simu2SM <-  mclapply(pPropVec, function(p)
              perturbedDataFun = subSample),
   mc.cores = 14)
 
-
+save(simu1SM, simu2SM, simu1IM, simu2IM, file = "simuResTheovsSampledClustRstab.RData")
 #------------------------------------------
 #------------------------------------------
 # PLOTS
 #------------------------------------------
 #------------------------------------------
 
-#------------------------------------------
-# Data representation
-#------------------------------------------
-
-# First case
-p1 <-  dataList[[2]] %>%
-    select(V1,V2) %>%
-    mutate(V1 = as.numeric(V1),
-           V2 = as.numeric(V2),
-           groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
-  ggplot(aes(V1, V2, colour = groups)) +
-    geom_point(alpha = 0.5) +
-    scale_colour_brewer(palette = "Dark2") +
-    theme_bw() +
-    ylab("V2")+
-    scale_y_continuous(breaks = seq(-8, 8, by=2))+
-    scale_x_continuous(breaks = seq(-8, 8, by=2))+
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        plot.margin =  unit(c(5.5,5.5,5.5,10), "pt")) +
-  geom_vline(xintercept=seq(-6,6, by = 2), linetype="dotted")
-
-p2 <-  dataList2[[2]] %>%
-  select(V1,V2) %>%
-  mutate(V1 = as.numeric(V1),
-         V2 = as.numeric(V2),
-         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
-  ggplot(aes(V1, V2, colour = groups)) +
-  geom_point(alpha = 0.5) +
-  scale_colour_brewer(palette = "Dark2") +
-  theme_bw() +
-  ylab("V'2")+
-  scale_y_continuous(breaks = seq(-8, 8, by=2))+
-  scale_x_continuous(breaks = seq(-8, 8, by=2))+
-  theme(axis.title.x=element_blank(),
-                axis.text.x=element_blank(),
-               axis.ticks.x=element_blank(),
-        plot.margin =  unit(c(5.5,5.5,5.5,10), "pt"))+
-  geom_vline(xintercept=c(seq(-6,2, by = 2),5,6), linetype="dotted")
-
-
-# library(RColorBrewer)
-# brewer.pal(n = 8, name = "Dark2") # To get colors !
-
-p3 <-  dataList[[2]] %>%
-  select(V1) %>%
-  mutate(V1 = as.numeric(V1),
-         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
-  ggplot(aes(V1, color = groups, fill = groups)) +
-  geom_density(alpha = 0.3) +
-  scale_colour_brewer(palette = "Dark2") +
-  theme_bw() +
-  xlab("V1")+
-  scale_fill_manual( values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666")) +
-  scale_x_continuous(breaks = seq(-8, 8, by=2)) +
-  geom_vline(xintercept=seq(-6,6, by = 2), linetype="dotted")
-
-p4 <-  dataList2[[2]] %>%
-  select(V1) %>%
-  mutate(V1 = as.numeric(V1),
-         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
-  ggplot(aes(V1, color = groups, fill = groups)) +
-  geom_density(alpha = 0.3) +
-  scale_colour_brewer(palette = "Dark2") +
-  theme_bw() +
-  xlab("V'1")+
-  scale_fill_manual( values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666")) +
-  scale_x_continuous(breaks = seq(-8, 8, by=2)) +
-  geom_vline(xintercept=c(seq(-6,2, by = 2),5,6), linetype="dotted")
-
-
-#library(ggpubr)
-ggarrange(p1, p2, p3, p4, ncol=2, nrow = 2, common.legend = TRUE, legend="right")
-
 #----------------------------------------------------------------
 # Global representation of simu study (with facet but not used for chapter)
 #----------------------------------------------------------------
-# Theoretical results
+# # Theoretical results
 simu.clustRstabALLTheo <- rbind(
   cbind(t(rbind(nb.grs = kVec, simu1IM)), simuCase = rep(1, length(2:Kmax))),
   cbind(t(rbind(nb.grs = kVec, simu2IM)), simuCase = rep(2, length(2:Kmax)))) %>%
@@ -274,4 +199,83 @@ plot.clustRstabALL <- rbind(do.call(what = rbind,
   ylim(-0.05, 0.5) +
   theme_bw()
 
+#plot.clustRstabALL + facet_grid(.~ simuCase)
 plot.clustRstabALL + facet_grid(.~ simuCase)
+#------------------------------------------
+# Data representation
+#------------------------------------------
+
+# First case
+p1 <-  dataList[[1]] %>%
+    select(V1,V2) %>%
+    mutate(V1 = as.numeric(V1),
+           V2 = as.numeric(V2),
+           groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, V2, colour = groups)) +
+    geom_point(alpha = 0.5) +
+    scale_colour_brewer(palette = "Dark2") +
+    theme_bw() +
+    ylab("V2")+
+    scale_y_continuous(breaks = seq(-8, 8, by=2))+
+    scale_x_continuous(breaks = seq(-8, 8, by=2))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        plot.margin =  unit(c(5.5,5.5,5.5,10), "pt")) +
+  geom_vline(xintercept=seq(-6,6, by = 2), linetype="dotted")
+
+p2 <-  dataList2[[1]] %>%
+  select(V1,V2) %>%
+  mutate(V1 = as.numeric(V1),
+         V2 = as.numeric(V2),
+         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, V2, colour = groups)) +
+  geom_point(alpha = 0.5) +
+  scale_colour_brewer(palette = "Dark2") +
+  theme_bw() +
+  ylab("V'2")+
+  scale_y_continuous(breaks = seq(-8, 8, by=2))+
+  scale_x_continuous(breaks = seq(-8, 8, by=2))+
+  theme(axis.title.x=element_blank(),
+                axis.text.x=element_blank(),
+               axis.ticks.x=element_blank(),
+        plot.margin =  unit(c(5.5,5.5,5.5,10), "pt"))+
+  geom_vline(xintercept=c(seq(-6,2, by = 2),5,6), linetype="dotted")
+
+
+# library(RColorBrewer)
+# brewer.pal(n = 8, name = "Dark2") # To get colors !
+
+p3 <-  dataList[[1]] %>%
+  select(V1) %>%
+  mutate(V1 = as.numeric(V1),
+         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, color = groups, fill = groups)) +
+  geom_density(alpha = 0.3) +
+  scale_colour_brewer(palette = "Dark2") +
+  theme_bw() +
+  xlab("V1") +
+  ylim(0,0.6) +
+  scale_fill_manual( values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666")) +
+  scale_x_continuous(breaks = seq(-8, 8, by=2)) +
+  geom_vline(xintercept=seq(-6,6, by = 2), linetype="dotted")
+
+p4 <-  dataList2[[1]] %>%
+  select(V1) %>%
+  mutate(V1 = as.numeric(V1),
+         groups = as.factor(rep(1:trueK, each = nPerGr))) %>%
+  ggplot(aes(V1, color = groups, fill = groups)) +
+  geom_density(alpha = 0.3) +
+  scale_colour_brewer(palette = "Dark2") +
+  theme_bw() +
+  xlab("V'1")+
+  ylim(0,0.6) +
+  scale_fill_manual( values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666")) +
+  scale_x_continuous(breaks = seq(-8, 8, by=2)) +
+  geom_vline(xintercept=c(seq(-6,2, by = 2),5,6), linetype="dotted")
+
+
+#library(ggpubr)
+ggarrange(p1, p2, p3, p4, ncol=2, nrow = 2, common.legend = TRUE, legend="right")
+
+
