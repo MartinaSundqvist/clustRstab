@@ -2,9 +2,9 @@ library(clustRstab)
 
 clustRstab(data,
            perturbedDataFun = subSample,
-           nsim = 100,
-           kVec = 2:15,
-           clAlgo = clAlgoKmeans,
+           nsim = 2,
+           kVec = 2:7,
+           clAlgo = clAlgoHCWard,
            clCompScore = MARI,
            typeOfComp = "random",
            baseLineCorrection = FALSE,
@@ -21,6 +21,7 @@ library(mclust) # Library for copmputing gaussian mixture model (GMM)
 library(factoextra)
 library(cluster)
 library(parallel)
+library(aricode)
 
 ## Prepare data
 # Define data
@@ -37,21 +38,23 @@ geneSD <- apply(data, 2, sd)
 geneSelect <- geneSD %>%
   density %>% plot(., main = 'Desity plot', xlab = "Standard Deviation", ylab = "density" , ylim = c(0,2.7))
 treshold <- 0.8
-xfit<-seq(0, max(geneSD),length=length(geneSD))
-yfit<-dnorm(xfit,mean=0.48,sd=0.15)
-lines(xfit, yfit, col="blue", lwd=1, lty = 2 )
-
-yfit<-dnorm(xfit,mean=0.8,sd=0.45)
-lines(xfit, yfit, col="red", lwd=1, lty = 2)
-abline(v = treshold, lty = 2, col = "blue")
-graphics::legend("topright", legend = c(" ", " "),
-               text.width = strwidth("1,000,000"),
-               lty = 1:2, xjust = 1, yjust = 1, inset = 1/10,
-               title = "Line Types", trace=TRUE)
-
-
 data <- data[, geneSD > treshold]
 dim(data)
+data
+
+# xfit<-seq(0, max(geneSD),length=length(geneSD))
+# yfit<-dnorm(xfit,mean=0.48,sd=0.15)
+# lines(xfit, yfit, col="blue", lwd=1, lty = 2 )
+
+# yfit<-dnorm(xfit,mean=0.8,sd=0.45)
+# lines(xfit, yfit, col="red", lwd=1, lty = 2)
+# abline(v = treshold, lty = 2, col = "blue")
+# graphics::legend("topright", legend = c(" ", " "),
+#                text.width = strwidth("1,000,000"),
+#                lty = 1:2, xjust = 1, yjust = 1, inset = 1/10,
+#                title = "Line Types", trace=TRUE)
+
+
 
 
 # Define cancer type
@@ -386,12 +389,39 @@ clAlgoKmeans(data, k = 3)
 
 
 
-#----------------------------------------------------------------
-# nProp
-#----------------------------------------------------------------
+
+funsPerturbData <- list(
+  subSample = clustRstab::subSample,
+  noiseGaussian = clustRstab::noiseGaussian,
+  randProjData = clustRstab::randProjData
+)
+
+
+paramsPerturbData <- list(
+  nPropVec <- c(0.65, 0.75, 0.85),
+  params <- cbind(c(0,1,1), c(1,2,3)),
+  randProjVec <- c(20, 100, 500)
+)
+
+
+NCIclustRstabDataPert <- mclapply(1:3, function(f){
+ lapply(nPropVec, function(i) {
+  clustRstab(data= data,
+             perturbedDataFun = funsPerturbData[f],
+             kVec = 2:kMax,
+             typeOfComp = "all",
+             clCompScore = aricode::MARI,
+             clAlgo = clustRstab::clAlgoKmeans,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F,
+             nProp = paramsPerturbData[[f]][i], pProp = paramsPerturbData[[f]][i],
+             noiseGaussianMean = paramsPerturbData[[f]][i,1], noiseGaussianSD = paramsPerturbData[[f]][i,2],
+             randProjMethod = "Haar", randProjDim = paramsPerturbData[[f]][i]
+             )
+})
+  }, mc.cores = mc.cores)
+
 nPropVec <- c(0.65, 0.75, 0.85)
-kMax = 15
-nsim = 5
 
 NCIclustRstabNprop <- mclapply(nPropVec, function(i) {
   clustRstab(data= data,
@@ -401,13 +431,36 @@ NCIclustRstabNprop <- mclapply(nPropVec, function(i) {
              clCompScore = aricode::MARI,
              clAlgo = clustRstab::clAlgoKmeans,
              nsim = nsim, baseLineCorrection = F,
-             plot = F, nProp = i, pProp = 1)
-}, mc.cores = 8)
+             plot = F, nProp = i, pProp = i)
+}, mc.cores = mc.cores)
 
 
 #----------------------------------------------------------------
-# adding noise
+# prop
 #----------------------------------------------------------------
+kMax = 15
+nsim = 500
+mc.cores = 14
+
+
+nPropVec <- c(0.65, 0.75, 0.85)
+
+NCIclustRstabNprop <- mclapply(nPropVec, function(i) {
+  clustRstab(data= data,
+             perturbedDataFun = clustRstab::subSample,
+             kVec = 2:kMax,
+             typeOfComp = "all",
+             clCompScore = aricode::MARI,
+             clAlgo = clustRstab::clAlgoKmeans,
+             nsim = nsim, baseLineCorrection = F,
+             plot = F, nProp = i, pProp = i)
+}, mc.cores = mc.cores)
+
+
+#----------------------------------------------------------------
+# adding Noise
+#----------------------------------------------------------------
+
 
 noiseMeanVec <- c(0,1,1)
 noiseSDVec <- c(1,2,3)
@@ -424,7 +477,7 @@ NCIclustRstabNoise <- mclapply(1:3, function(i) {
              nsim = nsim, baseLineCorrection = F,
              plot = F, noiseGaussianMean = params[i,1],
              noiseGaussianSD = params[i,2] )
-}, mc.cores = 12)
+}, mc.cores = mc.cores)
 
 
 
@@ -446,10 +499,7 @@ NCIclustRstabRandProj <- mclapply(1:3, function(i) {
              clAlgo = clAlgoKmeans,
              nsim = nsim, baseLineCorrection = F,
              plot = F, randProjMethod = "Haar", randProjDim = randProjVec[i])
-}, mc.cores = 12)
-
-
-plot.clustRstabRandProj
+}, mc.cores = mc.cores)
 
 
 #----------------------------------------------------------------
@@ -471,7 +521,7 @@ NCIclustRstabClustRFun <- mclapply(funsClust, function(i) {
              clAlgo = i,
              nsim = nsim, baseLineCorrection = F,
              plot = F)
-}, mc.cores = 12)
+}, mc.cores = mc.cores)
 
 
 
@@ -491,8 +541,7 @@ NCIclustRstabComp <- mclapply(1:3, function(i) {
              clAlgo = clAlgoKmeans,
              nsim = nsim, baseLineCorrection = F,
              plot = F)
-}, mc.cores = 12)
-
+}, mc.cores = mc.cores)
 
 
 #----------------------------------------------------------------
@@ -502,19 +551,23 @@ NCIclustRstabComp <- mclapply(1:3, function(i) {
 #----------------------------------------------------------------
 funsScore <- list(
   MARI = aricode::MARI,
+  NID = aricode::NID,
   NID = aricode::NID
 )
 
-NCIclustRstabScore <- mclapply(funsScore, function(i) {
+adjustement <- c(FALSE, TRUE, FALSE)
+
+
+NCIclustRstabScore <- mclapply(1:3, function(i) {
   clustRstab(data= data,
              perturbedDataFun = clustRstab::subSample,
              kVec = 2:kMax,
              typeOfComp = "all",
-             clCompScore = i,
+             clCompScore = funsScore[[i]],
              clAlgo = clAlgoKmeans,
-             nsim = nsim, baseLineCorrection = F,
+             nsim = nsim, baseLineCorrection = adjustement[i],
              plot = F)
-}, mc.cores = 12)
+}, mc.cores = mc.cores)
 
 
 
@@ -524,6 +577,12 @@ NCIclustRstabScore <- mclapply(funsScore, function(i) {
 # Plots
 #----------------------------------------------------------------
 #----------------------------------------------------------------
+
+
+#---------------------------------------------------------------
+# Que les pert data fun
+#---------------------------------------------------------------
+
 
 # 1
 plot.clustRstabProp <- do.call(what = rbind, args = lapply(1:length(nPropVec),
@@ -543,15 +602,16 @@ plot.clustRstabProp <- do.call(what = rbind, args = lapply(1:length(nPropVec),
   # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
   scale_x_continuous(breaks = 2:kMax) +
   #ggtitle(paste("Subsampling observations")) +
-  ylab("clustRstab") +
-  xlab(" ") +
-  scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  ylab("clustRstab (mean MARI)") +
+  xlab("Number of groups K") +
+  scale_color_manual(values=c("#52854C","#4E84C4", "#293352")) +
   ylim(-0.05, 1.05) +
-  theme_minimal() +
-  theme(legend.key.size = unit(1.32, "cm"),
-        axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
+  theme_minimal()+
+  labs(colour = "prop") +theme(text = element_text(size = 17))
+  #theme(legend.key.size = unit(1.32, "cm"),
+   #     axis.title.x=element_blank(),
+    #    axis.text.x=element_blank(),
+     #   axis.ticks.x=element_blank())
 
 
 #2
@@ -573,13 +633,14 @@ plot.clustRstabNoise <- do.call(what = rbind, args = lapply(1:length(noiseMeanVe
   scale_x_continuous(breaks = 2:kMax) +
   #ggtitle(paste("Adding Gaussian Noise")) +
   ylab(" ")+
-  xlab(" ") +
-  scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
+  xlab("Number of groups K") +
+  scale_color_manual(values=c("#52854C","#4E84C4", "#293352")) +
   ylim(-0.05, 1.05) +
   theme_minimal() +
-  theme(        axis.title.x=element_blank(),
-                axis.text.x=element_blank(),
-                axis.ticks.x=element_blank())+
+   theme( text = element_text(size = 17),
+     axis.title.y=element_blank(),
+                 axis.text.y=element_blank(),
+                 axis.ticks.y=element_blank())+
   labs(colour = "noiseGaussian")
 
 #3
@@ -598,19 +659,34 @@ plot.clustRstabRandProj <- do.call(what = rbind, args = lapply(1:length(noiseMea
                   ymax=mean+sd,
                   group=RandProjDim), alpha=0.2) +
   # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
-  ylab("clustRstab") +
+  ylab(" ") +
   scale_x_continuous(breaks = 2:kMax) +
   #ggtitle("Random Prjection") +
-  xlab(" ") +
+  xlab("Number of groups K") +
   scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
   ylim(-0.05, 1.05) +
   theme_minimal() +
-  theme(        axis.title.x=element_blank(),
-                axis.text.x=element_blank(),
-                axis.ticks.x=element_blank())+
+   theme(text = element_text(size = 17),
+     #legend.text = element_text(size = 13),
+     axis.title.y=element_blank(),
+                 axis.text.y=element_blank(),
+                 axis.ticks.y=element_blank())+
   labs(colour = "randProjDim")
 
 
+library(ggpubr)
+ggarrange(
+  plot.clustRstabProp,
+  plot.clustRstabNoise,
+  plot.clustRstabRandProj,
+  labels = c("A", "B", "C"),
+  common.legend = FALSE, legend = "bottom", ncol = 3,
+  widths = c(1.1,0.95,0.95)
+)
+
+#---------------------------------------------------------------
+# The others
+#---------------------------------------------------------------
 #4
 plot.clustRstabClust <- do.call(what = rbind, args = lapply(1:3,
                                                             function(i) cbind(t(NCIclustRstabClustRFun[[i]][1:2,]),
@@ -629,17 +705,14 @@ plot.clustRstabClust <- do.call(what = rbind, args = lapply(1:3,
   # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
   scale_x_continuous(breaks = 2:kMax) +
   # ggtitle("Different comparisons") +
-  ylab(" ")+
-  xlab(" ") +
+  ylab("clustRstab (mean MARI)")+
+  xlab("Number of clusters K") +
   scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
   ylim(-0.05, 1.05) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5)) +
   labs(colour = "clAlgo")+
- theme(legend.key.size = unit(1.28, "cm"),
-       axis.title.x=element_blank(),
-       axis.text.x=element_blank(),
-       axis.ticks.x=element_blank())
+ theme(text = element_text(size = 17))
 
 
 
@@ -661,23 +734,23 @@ plot.clustRstabComp <- do.call(what = rbind, args = lapply(1:length(noiseMeanVec
   # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
   scale_x_continuous(breaks = 2:kMax) +
   # ggtitle("Different comparisons") +
-  ylab("clustRstab") +
+  ylab("clustRstab (mean MARI)") +
   xlab("Number of clusters K") +
   scale_color_manual(values=c( "#52854C","#4E84C4", "#293352")) +
   ylim(-0.05, 1.05) +
   theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5))+
+  theme(text = element_text(size = 17))+
   labs(colour = "typeOfComp")
 
 
 # 6
-plot.clustRstabScore <- do.call(what = rbind, args = lapply(1:2,
+plot.clustRstabScore <- do.call(what = rbind, args = lapply(1:3,
                                                                function(i) cbind(t(NCIclustRstabScore[[i]][1:2,]),
                                                                                  K = 2:kMax,
                                                                                  Score = rep(i, length(2:kMax))
                                                                ))) %>%
   as.tibble() %>%
-  mutate(Score = factor(Score, levels = 1:2, labels = c("MARI", "NID"))) %>%
+  mutate(Score = factor(Score, levels = 1:3, labels = c("MARI", "NID adj.", "NID non-adj."))) %>%
   ggplot() +
   geom_line(aes(x=K, y=mean,
                 group=Score, colour = Score)) +
@@ -688,23 +761,21 @@ plot.clustRstabScore <- do.call(what = rbind, args = lapply(1:2,
   # geom_vline(xintercept = nb.grs, color = "black", linetype="dashed") +
   scale_x_continuous(breaks = 2:kMax) +
   #ggtitle("Different comparisons") +
-  ylab(" ")+
+  ylab("clustRstab (mean MARI or NID)")+
   xlab("Number of clusters K") +
-  scale_color_manual(values=c( "#52854C","#4E84C4")) +
+  scale_color_manual(values=c("#52854C","#4E84C4", "#293352")) +
   ylim(-0.05, 1.05) +
   theme_minimal()+
-  labs(colour = "clCompScore") +
-  theme(legend.key.size = unit(1.56, "cm"))
+  labs(colour = "clCompSc") +
+  theme(text = element_text(size = 17))
  #legenWidht = 1.5
 
 library(ggpubr)
 ggarrange(
-  plot.clustRstabProp,
-  plot.clustRstabNoise,
-  plot.clustRstabRandProj,
   plot.clustRstabClust,
   plot.clustRstabComp,
-  plot.clustRstabScore,  labels = c("A", "B", "C", "D", "E", "F"),
-  common.legend = FALSE, legend = "right", ncol = 2, nrow = 3
+  plot.clustRstabScore,
+  labels = c("A", "B", "C"),
+  common.legend = FALSE, legend = "bottom", ncol = 3, widths = c(0.99,0.99,1.02)
 )
 
