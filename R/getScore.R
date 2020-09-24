@@ -30,9 +30,12 @@ getScore <- function(typeOfComp,
         if (baseLineCorrection == TRUE){
 
          if (isTRUE(all.equal(aricode::NID, clCompScore))) {
-            clCompScore(clInitial[intSec], k[intSec, c]) -
-             mean(replicate(10, clCompScore(clInitial[intSec], sample(k[intSec, c])))) +
-             1
+            # clCompScore(clInitial[intSec], k[intSec, c]) -
+            #  mean(replicate(10, clCompScore(clInitial[intSec], sample(k[intSec, c]))))  +
+            #  1
+           clCompScore(clInitial[intSec], k[intSec, c]) /
+             mean(replicate(10, clCompScore(clInitial[intSec], sample(k[intSec, c]))))
+
           }
 
         else {
@@ -57,9 +60,11 @@ getScore <- function(typeOfComp,
       intSec <- intersect(which(!is.na(k[,c[1]])), which(!is.na(k[,c[2]])))
       if (baseLineCorrection == TRUE){
         if (isTRUE(all.equal(aricode::NID, clCompScore))) {
-          clCompScore(k[intSec,c[1]], k[intSec,c[2]]) -
-            mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]])))) +
-            1
+          # clCompScore(k[intSec,c[1]], k[intSec,c[2]]) -
+          #   mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]])))) +
+          #   1
+          clCompScore(k[intSec,c[1]], k[intSec,c[2]]) /
+            mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]]))))
         }
         else {
           clCompScore(k[intSec,c[1]], k[intSec,c[2]]) -
@@ -82,9 +87,13 @@ getScore <- function(typeOfComp,
         intSec <- intersect(which(!is.na(k[,c[1]])), which(!is.na(k[,c[2]])))
         if (baseLineCorrection == TRUE){
           if (isTRUE(all.equal(aricode::NID, clCompScore))) {
-            clCompScore(k[intSec,c[1]], k[intSec,c[2]]) -
-              mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]])))) +
-              1
+            # clCompScore(k[intSec,c[1]], k[intSec,c[2]]) -
+            #   mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]])))) +
+            #   1
+            clCompScore(k[intSec,c[1]], k[intSec,c[2]]) /
+              mean(replicate(10, clCompScore(k[intSec,c[1]], sample(k[intSec,c[2]]))))
+
+
           }
           else {
             clCompScore(k[intSec,c[1]], k[intSec,c[2]]) -

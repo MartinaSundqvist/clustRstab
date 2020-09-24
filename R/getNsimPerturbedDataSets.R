@@ -10,6 +10,7 @@ getNsimPerturbedDataSets <- function(data, perturbedDataFun, nsim,
                                      noiseGaussianMean, noiseGaussianSD,
                                      randProjMethod, randProjDim,
                                      ...){
+  data <- as.data.frame(data)
   perturbedDataList <- lapply(1:nsim, function(i) perturbedDataFun(data,
                                                                    nProp = nProp, pProp = pProp,
                                                                    noiseGaussianMean = noiseGaussianMean,
